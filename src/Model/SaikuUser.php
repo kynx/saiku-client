@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Model;
 
-final class SaikuUser
+final class SaikuUser extends AbstractModel
 {
     const ROLE_ADMIN = 'ROLE_ADMIN';
     const ROLE_USER = 'ROLE_USER';
@@ -16,41 +16,23 @@ final class SaikuUser
     /**
      * @var int
      */
-    private $id;
+    protected $id;
     /**
      * @var string
      */
-    private $username;
+    protected $username;
     /**
      * @var string
      */
-    private $password;
+    protected $password;
     /**
      * @var string
      */
-    private $email;
+    protected $email;
     /**
      * @var string[]
      */
-    private $roles = [];
-
-    public function __construct(?string $json = null)
-    {
-        if ($json) {
-            $properties = json_decode($json, true);
-            $vars = array_keys(get_class_vars(self::class));
-            foreach ($vars as $var) {
-                if (isset($properties[$var])) {
-                    $this->$var = $properties[$var];
-                }
-            }
-        }
-    }
-
-    public function toArray(): array
-    {
-        return get_object_vars($this);
-    }
+    protected $roles = [];
 
     /**
      * @return int
