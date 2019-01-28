@@ -12,7 +12,7 @@ use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 use Throwable;
 
-final class BadResponseException extends RuntimeException implements ExceptionInterface
+final class BadResponseException extends RuntimeException implements SaikuExceptionInterface
 {
     private $response;
 

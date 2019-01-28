@@ -15,9 +15,11 @@ use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\ServerException;
 use Kynx\Saiku\Exception\BadLoginException;
 use Kynx\Saiku\Exception\BadResponseException;
+use Kynx\Saiku\Exception\LicenseException;
 use Kynx\Saiku\Exception\ProxyException;
 use Kynx\Saiku\Exception\UserException;
 use Kynx\Saiku\Exception\SaikuException;
+use Kynx\Saiku\Model\SaikuLicense;
 use Kynx\Saiku\Model\SaikuUser;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -54,8 +56,6 @@ final class SaikuClient
 
     /**
      * Sets Saiku username to use for connection
-     * @param mixed $username
-     * @return SaikuClient
      */
     public function setUsername(string $username): SaikuClient
     {
@@ -69,8 +69,6 @@ final class SaikuClient
 
     /**
      * Sets Saiku password to use for connection
-     * @param mixed $password
-     * @return SaikuClient
      */
     public function setPassword(string $password): SaikuClient
     {
@@ -82,6 +80,7 @@ final class SaikuClient
      * Logs in to saiku server
      *
      * @throws BadLoginException
+     * @throws LicenseException
      * @throws SaikuException
      */
     public function login(): void
@@ -107,6 +106,8 @@ final class SaikuClient
 
     /**
      * Logs out from saiku server
+     *
+     * @throws SaikuException
      */
     public function logout(): void
     {
@@ -121,8 +122,8 @@ final class SaikuClient
 
     /**
      * Returns response that results from proxying given request to saiku server
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
+     *
+     * @throws ProxyException
      */
     public function proxy(ServerRequestInterface $request): ResponseInterface
     {
@@ -145,8 +146,9 @@ final class SaikuClient
 
     /**
      * Returns user with given id, if they exist
-     * @param int $id
-     * @return SaikuUser|null
+     *
+     * @throws BadLoginException
+     * @throws SaikuException
      */
     public function getUser(int $id): ?SaikuUser
     {
@@ -170,8 +172,8 @@ final class SaikuClient
 
     /**
      * Creates and returns new user
-     * @param SaikuUser $user
-     * @return SaikuUser
+     *
+     * @throws UserException
      */
     public function createUser(SaikuUser $user): SaikuUser
     {
@@ -188,8 +190,6 @@ final class SaikuClient
 
     /**
      * Updates user without updating password, returning updated user
-     * @param SaikuUser $user
-     * @return SaikuUser
      */
     public function updateUser(SaikuUser $user): SaikuUser
     {
@@ -201,8 +201,9 @@ final class SaikuClient
 
     /**
      * Updates both user and password, returning updated user
-     * @param SaikuUser $user
-     * @return SaikuUser
+     *
+     * @throws UserException
+     * @throws SaikuException
      */
     public function updateUserAndPassword(SaikuUser $user): SaikuUser
     {
@@ -226,7 +227,6 @@ final class SaikuClient
 
     /**
      * Deletes user
-     * @param SaikuUser $user
      */
     public function deleteUser(SaikuUser $user): void
     {
@@ -281,6 +281,7 @@ final class SaikuClient
      *
      * If no session is active, logs in. If request fails with unauthorised error, logs in and retries request.
      *
+     * @throws BadLoginException
      * @throws GuzzleException
      */
     private function lazyRequest(string $method, string $url, array $options = [], int $count = 0): ResponseInterface
@@ -327,6 +328,6 @@ final class SaikuClient
 
     private function throwBadLoginException(GuzzleException $e)
     {
-        throw new BadLoginException(sprintf("Couldn't get session for '%s'", $this->username), 401, $e);
+        throw new BadLoginException(sprintf("Couldn't get session for '%s'", $this->username), 401, $exception);
     }
 }

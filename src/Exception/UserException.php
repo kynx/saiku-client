@@ -10,6 +10,6 @@ namespace Kynx\Saiku\Exception;
 
 use InvalidArgumentException;
 
-final class UserException extends InvalidArgumentException implements ExceptionInterface
+final class UserException extends InvalidArgumentException implements SaikuExceptionInterface
 {
 }

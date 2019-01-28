@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Exception;
 
-final class ProxyException extends \RuntimeException implements ExceptionInterface
+final class ProxyException extends \RuntimeException implements SaikuExceptionInterface
 {
 }

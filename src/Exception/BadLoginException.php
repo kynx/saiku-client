@@ -10,6 +10,6 @@ namespace Kynx\Saiku\Exception;
 
 use RuntimeException;
 
-final class BadLoginException extends RuntimeException implements ExceptionInterface
+final class BadLoginException extends RuntimeException implements SaikuExceptionInterface
 {
 }

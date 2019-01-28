@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Exception;
 
-interface ExceptionInterface
+interface SaikuExceptionInterface
 {
 }

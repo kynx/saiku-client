@@ -10,6 +10,6 @@ namespace Kynx\Saiku\Exception;
 
 use Psr\Container\ContainerExceptionInterface;
 
-final class ContainerException extends \RuntimeException implements ContainerExceptionInterface, ExceptionInterface
+final class ContainerException extends \RuntimeException implements ContainerExceptionInterface, SaikuExceptionInterface
 {
 }
