@@ -100,6 +100,9 @@ final class SaikuClient
             if ($this->isUnauthorisedException($e)) {
                 $this->throwBadLoginException($e);
             }
+            if ($this->isLicenseException($e)) {
+                $this->throwLicenseException($e);
+            }
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
     }
@@ -237,6 +240,33 @@ final class SaikuClient
         }
     }
 
+    public function getLicense(): SaikuLicense
+    {
+        try {
+            $response = $this->lazyRequest('GET', self::URL_LICENSE);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        return new SaikuLicense((string) $response->getBody());
+    }
+
+    public function setLicense(StreamInterface $stream): void
+    {
+        $options = [
+            'auth' => [$this->username, $this->password],
+            'body' => $stream,
+        ];
+        try {
+            $this->client->request('POST', self::URL_LICENSE, $options);
+        } catch (GuzzleException $e) {
+            if ($this->isUnauthorisedException($e)) {
+                $this->throwBadLoginException($e);
+            }
+            throw new LicenseException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
     /**
      * Returns stream containing zip of saiku repository backup
      */
@@ -326,8 +356,22 @@ final class SaikuClient
         return false;
     }
 
-    private function throwBadLoginException(GuzzleException $e)
+    private function isLicenseException(GuzzleException $exception): bool
+    {
+        if ($exception instanceof ServerException && $exception->getCode() == 500) {
+            $body = (string) $exception->getResponse()->getBody();
+            return (bool) stristr($body, 'error fetching license');
+        }
+        return false;
+    }
+
+    private function throwBadLoginException(GuzzleException $exception): void
     {
         throw new BadLoginException(sprintf("Couldn't get session for '%s'", $this->username), 401, $exception);
+    }
+
+    private function throwLicenseException(GuzzleException $exception): void
+    {
+        throw new LicenseException("Invalid license", $exception->getCode(), $exception);
     }
 }
