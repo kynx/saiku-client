@@ -19,6 +19,7 @@ use Kynx\Saiku\Exception\BadLoginException;
 use Kynx\Saiku\Exception\LicenseException;
 use Kynx\Saiku\Exception\SaikuException;
 use Kynx\Saiku\Exception\SaikuExceptionInterface;
+use Kynx\Saiku\Exception\UserException;
 use Kynx\Saiku\Model\SaikuLicense;
 use Kynx\Saiku\Model\SaikuUser;
 use Kynx\Saiku\SaikuClient;
@@ -33,7 +34,8 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class SaikuClientIntegrationTest extends TestCase
 {
-    private const VALID_USER_ID = 1;
+    private const ADMIN_ID = 1;
+    private const USER_ID = 2;
     private const INVALID_USER_ID = 9999;
 
     /**
@@ -162,15 +164,94 @@ final class SaikuClientIntegrationTest extends TestCase
 
     public function testGetUserReturnsUser()
     {
-        $actual = $this->saiku->getUser(self::VALID_USER_ID);
+        $actual = $this->saiku->getUser(self::ADMIN_ID);
         $this->assertInstanceOf(SaikuUser::class, $actual);
-        $this->assertEquals(self::VALID_USER_ID, $actual->getId());
+        $this->assertEquals(self::ADMIN_ID, $actual->getId());
     }
 
     public function testGetNonexistentUserReturnsEmpty()
     {
         $actual = $this->saiku->getUser(self::INVALID_USER_ID);
         $this->assertNull($actual);
+    }
+
+    public function testCreateUserCreates()
+    {
+        $user = new SaikuUser();
+        $user->setUsername('foo@test')
+            ->setPassword('blahblahblah')
+            ->setEmail('foo@example.com');
+
+        try {
+            $actual = $this->saiku->createUser($user);
+        } finally {
+            // if this fails subsequent runs will also fail until you restart docker
+            if ($actual && $actual->getId()) {
+                // @fixme this is throwing a 405
+                $this->saiku->deleteUser($user);
+            }
+        }
+        $this->assertNotEmpty($actual->getId());
+        $this->assertEquals($user->getUsername(), $actual->getUsername());
+        $this->assertEquals($user->getEmail(), $actual->getEmail());
+    }
+
+    public function testUpdateUser()
+    {
+        $user = $this->saiku->getUser(self::ADMIN_ID);
+        $this->assertInstanceOf(SaikuUser::class, $user);
+        $oldEmail = $user->getEmail();
+        $oldPassword = $user->getPassword();
+        $this->assertNotEquals('another@example.com', $oldEmail);
+        $user->setEmail('another@example.com');
+
+        try {
+            $actual = $this->saiku->updateUser($user);
+        } finally {
+            // if the following fails subsequent runs will also fail until you restart docker
+            $user->setEmail($oldEmail);
+            $this->saiku->updateUser($user);
+        }
+
+        $this->assertEquals(self::ADMIN_ID, $actual->getId());
+        $this->assertEquals('another@example.com', $actual->getEmail());
+
+        // check password has not been altered
+        $actual = $this->saiku->getUser(self::ADMIN_ID);
+        $this->assertEquals($oldPassword, $actual->getPassword());
+    }
+
+    public function testUpdateNoIdThrowsException()
+    {
+        $this->expectException(UserException::class);
+        $user = new SaikuUser();
+        $user->setUsername('foo@test')
+            ->setPassword('foo');
+        $this->saiku->updateUser($user);
+    }
+
+    public function testUpdateNonexistentUserThrowsException()
+    {
+        $this->expectException(UserException::class);
+        $user = new SaikuUser();
+        $user->setId(self::INVALID_USER_ID)
+            ->setUsername('foo@test')
+            ->setPassword('foo');
+        $this->saiku->updateUser($user);
+    }
+
+    public function testUpdateUserAndPasswordUpdatesPassword()
+    {
+        $user = $this->saiku->getUser(self::USER_ID);
+        $this->assertInstanceOf(SaikuUser::class, $user);
+        $oldPassword = $user->getPassword();
+        $user->setPassword('foo');
+
+        $actual = $this->saiku->updateUserAndPassword($user);
+        $this->assertEquals(self::USER_ID, $actual->getId());
+        $this->assertStringStartsWith('$2a$', $actual->getPassword());
+        $this->assertNotEquals($oldPassword, $actual->getPassword());
+
     }
 
     public function testGetLicenseReturnsLicense()
@@ -188,95 +269,6 @@ final class SaikuClientIntegrationTest extends TestCase
         $actual = $this->saiku->getLicense();
         $this->assertInstanceOf(SaikuLicense::class, $actual);
     }
-
-
-//    public function testCreateUserCreates()
-//    {
-//        $generator = (new Factory())->getLowStrengthGenerator();
-//        $user = new SaikuUser();
-//        $user->setUsername('foo@test')
-//            ->setPassword($generator->generateString(20))
-//            ->setEmail('foo@example.com');
-//        try {
-//            $actual = $this->saiku->createUser($user);
-//            $this->assertNotEmpty($actual->getId());
-//            $this->assertEquals($user->getUsername(), $actual->getUsername());
-//            $this->assertEquals($user->getEmail(), $actual->getEmail());
-//        } catch (SaikuException $e) {
-//            $this->fail($e->getMessage());
-//        } finally {
-//            if ($actual && $actual->getId()) {
-//                $this->saiku->deleteUser($actual);
-//            }
-//        }
-//    }
-//
-//    public function testUpdateUser()
-//    {
-//        $user = $this->saiku->getUser(self::VALID_USER_ID);
-//        $this->assertInstanceOf(SaikuUser::class, $user);
-//        $oldEmail = $user->getEmail();
-//        $oldPassword = $user->getPassword();
-//        $this->assertNotEquals('another@example.com', $oldEmail);
-//        $user->setEmail('another@example.com');
-//
-//        try {
-//            $actual = $this->saiku->updateUser($user);
-//            $this->assertEquals(self::VALID_USER_ID, $actual->getId());
-//            $actual = $this->saiku->getUser(self::VALID_USER_ID);
-//            $this->assertEquals('another@example.com', $actual->getEmail());
-//            $this->assertEquals($oldPassword, $actual->getPassword());
-//            $user->setEmail($oldEmail);
-//            $this->saiku->updateUser($user);
-//        } catch (SaikuException $e) {
-//            $this->fail($e->getMessage());
-//        }
-//    }
-//
-//    /**
-//     * @expectedException \Claritum\Integration\Saiku\Exception\InvalidUserException
-//     */
-//    public function testUpdateNoIdThrowsException()
-//    {
-//        $user = new SaikuUser();
-//        $user->setUsername('foo@test')
-//            ->setPassword('foo');
-//        $this->saiku->updateUser($user);
-//    }
-//
-//    /**
-//     * @expectedException \Claritum\Integration\Saiku\Exception\InvalidUserException
-//     */
-//    public function testUpdateNonexistentUserThrowsException()
-//    {
-//        $user = new SaikuUser();
-//        $user->setId(self::INVALID_USER_ID)
-//            ->setUsername('foo@test')
-//            ->setPassword('foo');
-//        $this->saiku->updateUser($user);
-//    }
-//
-//    public function testUpdateUserAndPasswordUpdatesPassword()
-//    {
-//        $user = $this->saiku->getUser(self::VALID_USER_ID);
-//        $this->assertInstanceOf(SaikuUser::class, $user);
-//        $oldPassword = $user->getPassword();
-//        $user->setPassword('foo');
-//
-//        try {
-//            $actual = $this->saiku->updateUserAndPassword($user);
-//            $this->assertEquals(self::VALID_USER_ID, $actual->getId());
-//            $this->assertStringStartsWith('$2a$', $actual->getPassword());
-//            $this->assertNotEquals($oldPassword, $actual->getPassword());
-//        } catch (SaikuException $e) {
-//            $this->fail($e->getMessage());
-//        } finally {
-//            if ($actual) {
-//                $user->setPassword($GLOBALS['SAIKU_PASSWORD']);
-//                $this->saiku->updateUserAndPassword($user);
-//            }
-//        }
-//    }
 
     private function getInvalidSessionCookie(): SetCookie
     {
