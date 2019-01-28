@@ -14,7 +14,12 @@ use GuzzleHttp\Cookie\SetCookie;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\ServerRequest;
+use GuzzleHttp\Psr7\Stream;
 use Kynx\Saiku\Exception\BadLoginException;
+use Kynx\Saiku\Exception\LicenseException;
+use Kynx\Saiku\Exception\SaikuException;
+use Kynx\Saiku\Exception\SaikuExceptionInterface;
+use Kynx\Saiku\Model\SaikuLicense;
 use Kynx\Saiku\Model\SaikuUser;
 use Kynx\Saiku\SaikuClient;
 use PHPUnit\Framework\TestCase as TestCase;
@@ -26,7 +31,7 @@ use Psr\Http\Message\ResponseInterface;
  *
  * @group integration
  */
-class SaikuClientIntegrationTest extends TestCase
+final class SaikuClientIntegrationTest extends TestCase
 {
     private const VALID_USER_ID = 1;
     private const INVALID_USER_ID = 9999;
@@ -72,6 +77,9 @@ class SaikuClientIntegrationTest extends TestCase
         $this->saiku = new SaikuClient($client);
         $this->saiku->setUsername($GLOBALS['SAIKU_USERNAME'])
             ->setPassword($GLOBALS['SAIKU_PASSWORD']);
+
+        $this->loadRepository();
+        $this->history = [];
     }
 
     private function isConfigured()
@@ -164,6 +172,23 @@ class SaikuClientIntegrationTest extends TestCase
         $actual = $this->saiku->getUser(self::INVALID_USER_ID);
         $this->assertNull($actual);
     }
+
+    public function testGetLicenseReturnsLicense()
+    {
+        $actual = $this->saiku->getLicense();
+        $this->assertInstanceOf(SaikuLicense::class, $actual);
+    }
+
+    public function testSetLicense()
+    {
+        $fh = fopen($this->getLicenseFile(), 'r');
+        $stream = new Stream($fh);
+        $this->saiku->setLicense($stream);
+
+        $actual = $this->saiku->getLicense();
+        $this->assertInstanceOf(SaikuLicense::class, $actual);
+    }
+
 
 //    public function testCreateUserCreates()
 //    {
@@ -260,5 +285,54 @@ class SaikuClientIntegrationTest extends TestCase
         $cookie->setValue('12345678901234567890123456789012');
         $cookie->setDomain($GLOBALS['SAIKU_URL']);
         return $cookie;
+    }
+
+    private function loadRepository()
+    {
+        $this->checkLicense();
+
+        $fh = fopen('zip://' . __DIR__ . '/repo.zip#backup.xml', 'r');
+        $stream = new Stream($fh);
+        try {
+            $this->saiku->restore($stream);
+            $this->saiku->logout();
+        } catch (SaikuExceptionInterface $e) {
+            $this->markTestSkipped(sprintf("Error restoring repository: %s", $e->getMessage()));
+        } finally {
+            fclose($fh);
+        }
+    }
+
+    private function checkLicense()
+    {
+        try {
+            $this->saiku->getLicense();
+        } catch (LicenseException $e) {
+            $this->loadLicense();
+        } catch (SaikuException $e) {
+            $this->markTestSkipped(sprintf("Error checking license: %s", $e->getMessage()));
+        }
+    }
+
+    private function loadLicense()
+    {
+        $file = $this->getLicenseFile();
+        $fh = fopen($file, 'r');
+        if (! $fh) {
+            $this->markTestSkipped(sprintf("Couldn't open '%s' for reading", $file));
+        }
+        $stream = new Stream($fh);
+        try {
+            $this->saiku->setLicense($stream);
+        } catch (SaikuExceptionInterface $e) {
+            $this->markTestSkipped(sprintf("Error loading license from '%s: %s", $file, $e->getMessage()));
+        } finally {
+            fclose($fh);
+        }
+    }
+
+    private function getLicenseFile()
+    {
+        return __DIR__ . '/../license.lic';
     }
 }

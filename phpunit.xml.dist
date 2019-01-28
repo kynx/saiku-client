@@ -22,6 +22,7 @@
         <var name="SAIKU_URL" value="http://localhost:8080/saiku/" />
         <var name="SAIKU_USERNAME" value="" />
         <var name="SAIKU_PASSWORD" value="" />
+        <var name="SAIKU_LICENSE" value="./license.lic"/>
 
         <!--
           Set to true to dump requests and responses from integration tests.
