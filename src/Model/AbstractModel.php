@@ -10,6 +10,11 @@ namespace Kynx\Saiku\Model;
 
 abstract class AbstractModel
 {
+    /**
+     * AbstractModel constructor.
+     *
+     * @param array|string|null $json
+     */
     public function __construct($json = null)
     {
         $properties = $json;

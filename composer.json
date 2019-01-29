@@ -30,6 +30,7 @@
   "require": {
     "php":">=7.1",
     "ext-json":"*",
+    "ext-zip": "*",
     "guzzlehttp/guzzle": "^6.3"
   },
   "require-dev": {

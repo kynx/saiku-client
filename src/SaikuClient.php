@@ -17,8 +17,13 @@ use Kynx\Saiku\Exception\BadLoginException;
 use Kynx\Saiku\Exception\BadResponseException;
 use Kynx\Saiku\Exception\LicenseException;
 use Kynx\Saiku\Exception\ProxyException;
+use Kynx\Saiku\Exception\RepositoryException;
 use Kynx\Saiku\Exception\UserException;
 use Kynx\Saiku\Exception\SaikuException;
+use Kynx\Saiku\Model\AbstractObject;
+use Kynx\Saiku\Model\SaikuAcl;
+use Kynx\Saiku\Model\SaikuFile;
+use Kynx\Saiku\Model\SaikuFolder;
 use Kynx\Saiku\Model\SaikuLicense;
 use Kynx\Saiku\Model\SaikuUser;
 use Psr\Http\Message\ResponseInterface;
@@ -35,7 +40,8 @@ final class SaikuClient
     const URL_BACKUP = 'rest/saiku/admin/backup/';
     const URL_INFO = 'rest/saiku/info';
     const URL_LICENSE = 'rest/saiku/api/license/';
-    const URL_RESTORE = 'rest/saiku/admin/restore/';
+    const URL_REPO = 'rest/saiku/api/repository/';
+    const URL_RESTORE = 'rest/saiku/api/repository/zipupload/';
     const URL_SESSION = 'rest/saiku/session/';
     const URL_USER = 'rest/saiku/admin/users';
 
@@ -216,7 +222,7 @@ final class SaikuClient
 
         $data = $user->toArray();
         try {
-            $response = $this->lazyRequest('PUT', self::URL_USER . '/' . $user->getId(), ['json' => $data]);
+            $response = $this->lazyRequest('PUT', self::URL_USER . '/' . $user->getUsername(), ['json' => $data]);
         } catch (ServerException $e) {
             // Saiku has probably thrown a NullPointerException because the user doesn't exist. Would be nice
             // if it were a bit more specific
@@ -234,10 +240,33 @@ final class SaikuClient
     public function deleteUser(SaikuUser $user): void
     {
         try {
-            $this->lazyRequest('DELETE', self::URL_USER . '/' . $user->getId());
+            $this->lazyRequest('DELETE', self::URL_USER . '/' . $user->getUsername());
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
+    }
+
+    public function getRepository(?array $types = null): SaikuFolder
+    {
+        try {
+            if ($types === null) {
+                $types = SaikuFile::getAllFiletypes();
+            }
+            $query = ['type' => join(',', $types)];
+            $response = $this->lazyRequest('GET', self::URL_REPO, ['query' => $query]);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if ($response->getStatusCode() == 200) {
+            return new SaikuFolder((string) $response->getBody());
+        }
+        throw new RepositoryException("Couldn't get repository", $response->getStatusCode());
+    }
+
+    public function getAcl(string $path): SaikuAcl
+    {
+
     }
 
     public function getLicense(): SaikuLicense
