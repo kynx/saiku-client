@@ -37,13 +37,13 @@ use Psr\Http\Message\StreamInterface;
  */
 final class SaikuClient
 {
-    const URL_BACKUP = 'rest/saiku/admin/backup/';
+    const URL_BACKUP = 'rest/saiku/api/repository/zip/';
     const URL_INFO = 'rest/saiku/info';
     const URL_LICENSE = 'rest/saiku/api/license/';
     const URL_REPO = 'rest/saiku/api/repository/';
     const URL_RESTORE = 'rest/saiku/api/repository/zipupload/';
     const URL_SESSION = 'rest/saiku/session/';
-    const URL_USER = 'rest/saiku/admin/users';
+    const URL_USER = 'rest/saiku/admin/users/';
 
     private $client;
     private $username;
@@ -154,6 +154,27 @@ final class SaikuClient
     }
 
     /**
+     * Returns array of users
+     *
+     * @return SaikuUser[]
+     */
+    public function getUsers(): array
+    {
+        try {
+            $response = $this->lazyRequest('GET', self::URL_USER);
+            if ($response->getStatusCode() == '200') {
+                return array_map(function ($properties) {
+                    return new SaikuUser($properties);
+                }, json_decode($response->getBody(), true));
+            } else {
+                throw new BadResponseException(sprintf("Error getting users"), $response);
+            }
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
      * Returns user with given id, if they exist
      *
      * @throws BadLoginException
@@ -162,7 +183,7 @@ final class SaikuClient
     public function getUser(int $id): ?SaikuUser
     {
         try {
-            $response = $this->lazyRequest('GET', self::URL_USER . '/' . $id);
+            $response = $this->lazyRequest('GET', self::URL_USER . $id);
             if ($response->getStatusCode() == '200') {
                 return new SaikuUser((string) $response->getBody());
             } else {
@@ -190,7 +211,7 @@ final class SaikuClient
         unset($data['id']);
 
         try {
-            $response = $this->lazyRequest('POST', self::URL_USER . '/', ['json' => $data]);
+            $response = $this->lazyRequest('POST', self::URL_USER, ['json' => $data]);
         } catch (GuzzleException $e) {
             throw new UserException($e->getMessage(), $e->getCode(), $e);
         }
@@ -222,7 +243,7 @@ final class SaikuClient
 
         $data = $user->toArray();
         try {
-            $response = $this->lazyRequest('PUT', self::URL_USER . '/' . $user->getUsername(), ['json' => $data]);
+            $response = $this->lazyRequest('PUT', self::URL_USER . $user->getUsername(), ['json' => $data]);
         } catch (ServerException $e) {
             // Saiku has probably thrown a NullPointerException because the user doesn't exist. Would be nice
             // if it were a bit more specific
@@ -240,7 +261,7 @@ final class SaikuClient
     public function deleteUser(SaikuUser $user): void
     {
         try {
-            $this->lazyRequest('DELETE', self::URL_USER . '/' . $user->getUsername());
+            $this->lazyRequest('DELETE', self::URL_USER . $user->getUsername());
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
@@ -264,7 +285,17 @@ final class SaikuClient
         throw new RepositoryException("Couldn't get repository", $response->getStatusCode());
     }
 
+    public function saveObject(AbstractObject $object): void
+    {
+
+    }
+
     public function getAcl(string $path): SaikuAcl
+    {
+
+    }
+
+    public function setAcl(string $path, SaikuAcl $acl): void
     {
 
     }

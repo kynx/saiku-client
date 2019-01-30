@@ -18,6 +18,10 @@ final class Backup
      * @var SaikuAcl[]
      */
     private $acls = [];
+    /**
+     * @var SaikuUser[]
+     */
+    private $users = [];
 
     public function __construct($backup = null)
     {
@@ -56,11 +60,38 @@ final class Backup
      */
     public function getAcl(string $path): SaikuAcl
     {
-        return $this->acls;
+        return $this->acls[$path];
     }
 
     public function addAcl(string $path, SaikuAcl $acl)
     {
         $this->acls[$path] = $acl;
+    }
+
+    /**
+     * @return SaikuUser[]
+     */
+    public function getUsers(): array
+    {
+        return $this->users;
+    }
+
+    /**
+     * @param SaikuUser $user
+     */
+    public function addUser(SaikuUser $user): void
+    {
+        $this->users[$user->getUsername()] = $user;
+    }
+
+    public function toJson(bool $pretty = false): string
+    {
+        $options = $pretty ? JSON_PRETTY_PRINT : 0;
+        return json_encode(get_object_vars($this), $options);
+    }
+
+    public function __toString()
+    {
+        return $this->toJson();
     }
 }

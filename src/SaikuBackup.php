@@ -12,7 +12,7 @@ use Kynx\Saiku\Model\AbstractObject;
 use Kynx\Saiku\Model\Backup;
 use Kynx\Saiku\Model\SaikuFolder;
 
-final class BackupUtil
+final class SaikuBackup
 {
     private $client;
 
@@ -31,12 +31,16 @@ final class BackupUtil
             $backup->addAcl($path, $acl);
         }
 
+        foreach ($this->client->getUsers() as $user) {
+            $backup->addUser($user);
+        }
+
         return $backup;
     }
 
     public function restore(Backup $backup): void
     {
-
+        $this->restoreUsers($backup);
     }
 
     private function getAcls(AbstractObject $node)
@@ -51,5 +55,33 @@ final class BackupUtil
                 }
             }
         }
+    }
+
+    private function restoreUsers(Backup $backup): void
+    {
+        $existing = [];
+        foreach ($this->client->getUsers() as $user) {
+            $existing[$user->getUsername()] = $user;
+        }
+        $restored = [];
+
+        foreach ($backup->getUsers() as $user) {
+            $userName = $user->getUsername();
+            if (isset($existing[$userName])) {
+                $this->client->updateUserAndPassword($user);
+            } else {
+                $this->client->createUser($user);
+            }
+            $restored[$userName] = $user;
+        }
+
+        foreach (array_diff_key($existing, $restored) as $user) {
+            $this->client->deleteUser($user);
+        }
+    }
+
+    private function restoreNode(AbstractObject $node, Backup $backup): void
+    {
+
     }
 }
