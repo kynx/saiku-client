@@ -6,9 +6,9 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Model;
+namespace Kynx\Saiku\Entity;
 
-final class SaikuUser extends AbstractModel
+final class SaikuUser extends AbstractEntity
 {
     const ROLE_ADMIN = 'ROLE_ADMIN';
     const ROLE_USER = 'ROLE_USER';
