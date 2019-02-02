@@ -18,27 +18,27 @@ abstract class AbstractObject extends AbstractModel
     /**
      * @var string
      */
-    private $aClass;
+    protected $javaClass;
     /**
      * @var string
      */
-    private $type;
+    protected $type;
     /**
      * @var string
      */
-    private $name;
+    protected $name;
     /**
      * @var string
      */
-    private $id;
+    protected $id;
     /**
      * @var string
      */
-    private $path;
+    protected $path;
     /**
      * @var string[]
      */
-    private $acl = [];
+    protected $acl = [];
 
     /**
      * @param array|string $json
@@ -64,17 +64,17 @@ abstract class AbstractObject extends AbstractModel
     /**
      * @return string
      */
-    public function getClass(): string
+    public function getJavaClass(): string
     {
-        return $this->aClass;
+        return $this->javaClass;
     }
 
     /**
      * @param string $aClass
      */
-    public function setClass(string $aClass): void
+    public function setJavaClass(string $aClass): void
     {
-        $this->aClass = $aClass;
+        $this->javaClass = $aClass;
     }
 
     /**

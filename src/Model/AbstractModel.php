@@ -21,7 +21,7 @@ abstract class AbstractModel
         if (is_string($json)) {
             $properties = json_decode($json, true);
         }
-        if (is_array($properties)) {
+        if (is_array($properties) && count($properties)) {
             $this->hydrate($properties);
         }
     }
