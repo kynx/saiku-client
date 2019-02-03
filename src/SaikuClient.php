@@ -20,12 +20,14 @@ use Kynx\Saiku\Exception\ProxyException;
 use Kynx\Saiku\Exception\RepositoryException;
 use Kynx\Saiku\Exception\UserException;
 use Kynx\Saiku\Exception\SaikuException;
-use Kynx\Saiku\Model\AbstractObject;
-use Kynx\Saiku\Model\SaikuAcl;
-use Kynx\Saiku\Model\SaikuFile;
-use Kynx\Saiku\Model\SaikuFolder;
-use Kynx\Saiku\Model\SaikuLicense;
-use Kynx\Saiku\Model\SaikuUser;
+use Kynx\Saiku\Entity\AbstractNode;
+use Kynx\Saiku\Entity\SaikuAcl;
+use Kynx\Saiku\Entity\SaikuDatasource;
+use Kynx\Saiku\Entity\SaikuFile;
+use Kynx\Saiku\Entity\SaikuFolder;
+use Kynx\Saiku\Entity\SaikuLicense;
+use Kynx\Saiku\Entity\SaikuSchema;
+use Kynx\Saiku\Entity\SaikuUser;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
@@ -324,45 +326,6 @@ final class SaikuClient
                 $this->throwBadLoginException($e);
             }
             throw new LicenseException($e->getMessage(), $e->getCode(), $e);
-        }
-    }
-
-    /**
-     * Returns stream containing zip of saiku repository backup
-     */
-    public function backup(): StreamInterface
-    {
-        try {
-            $response = $this->lazyRequest('GET', self::URL_BACKUP);
-        } catch (GuzzleException $e) {
-            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
-        }
-        if ($response->getStatusCode() != 200) {
-            throw new BadResponseException("Backup failed", $response);
-        }
-        return $response->getBody();
-    }
-
-    /**
-     * Restores saiku repository from backup.
-     *
-     * Note: Although `backup()` returns a zip, saiku expects an XML file (ie 'backup.xml' from a backup zip) to restore.
-     */
-    public function restore(StreamInterface $backup): void
-    {
-        $options = [
-            'multipart' => [
-                [
-                    'name' => 'file',
-                    'contents' => $backup,
-                ],
-            ],
-        ];
-
-        try {
-            $this->lazyRequest('POST', self::URL_RESTORE, $options);
-        } catch (GuzzleException $e) {
-            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
     }
 

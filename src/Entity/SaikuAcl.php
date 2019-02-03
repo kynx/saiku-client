@@ -6,9 +6,9 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Model;
+namespace Kynx\Saiku\Entity;
 
-final class SaikuAcl extends AbstractModel
+final class SaikuAcl extends AbstractEntity
 {
     const TYPE_PUBLIC = 'PUBLIC';
     const TYPE_PRIVATE = 'PRIVATE';

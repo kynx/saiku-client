@@ -6,11 +6,11 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Model;
+namespace Kynx\Saiku\Entity;
 
 use Kynx\Saiku\Exception\HydrationException;
 
-abstract class AbstractObject extends AbstractModel
+abstract class AbstractNode extends AbstractEntity
 {
     const TYPE_FILE = 'FILE';
     const TYPE_FOLDER = 'FOLDER';

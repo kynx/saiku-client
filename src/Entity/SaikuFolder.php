@@ -6,17 +6,17 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Model;
+namespace Kynx\Saiku\Entity;
 
-final class SaikuFolder extends AbstractObject
+final class SaikuFolder extends AbstractNode
 {
     /**
-     * @var AbstractObject[]
+     * @var AbstractNode[]
      */
     private $repoObjects = [];
 
     /**
-     * @return AbstractObject[]
+     * @return AbstractNode[]
      */
     public function getRepoObjects(): array
     {
@@ -24,7 +24,7 @@ final class SaikuFolder extends AbstractObject
     }
 
     /**
-     * @param AbstractObject[] $repoObjects
+     * @param AbstractNode[] $repoObjects
      */
     public function setRepoObjects(array $repoObjects): void
     {

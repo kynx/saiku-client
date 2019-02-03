@@ -6,7 +6,7 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Model;
+namespace Kynx\Saiku\Entity;
 
 use DateTime;
 use DateTimeImmutable;
@@ -14,7 +14,7 @@ use DateTimeZone;
 use Exception;
 use Kynx\Saiku\Exception\HydrationException;
 
-final class SaikuLicense extends AbstractModel
+final class SaikuLicense extends AbstractEntity
 {
     /**
      * @var DateTimeImmutable

@@ -6,9 +6,9 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Model;
+namespace Kynx\Saiku\Entity;
 
-abstract class AbstractModel
+abstract class AbstractEntity
 {
     /**
      * AbstractModel constructor.

@@ -6,9 +6,9 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Model;
+namespace Kynx\Saiku\Entity;
 
-final class SaikuFile extends AbstractObject
+final class SaikuFile extends AbstractNode
 {
     const FILETYPE_DATASOURCE = 'sds';
     const FILETYPE_LICENSE = 'lic';

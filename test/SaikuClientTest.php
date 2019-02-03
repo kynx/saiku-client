@@ -18,7 +18,7 @@ use GuzzleHttp\Psr7\ServerRequest;
 use Kynx\Saiku\Exception\BadLoginException;
 use Kynx\Saiku\Exception\BadResponseException;
 use Kynx\Saiku\Exception\SaikuException;
-use Kynx\Saiku\Model\SaikuUser;
+use Kynx\Saiku\Entity\SaikuUser;
 use Kynx\Saiku\SaikuClient;
 use PHPUnit\Framework\TestCase as TestCase;
 use Psr\Http\Message\ResponseInterface;

@@ -8,9 +8,12 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku;
 
-use Kynx\Saiku\Model\AbstractObject;
-use Kynx\Saiku\Model\Backup;
-use Kynx\Saiku\Model\SaikuFolder;
+use Kynx\Saiku\Entity\AbstractNode;
+use Kynx\Saiku\Entity\Backup;
+use Kynx\Saiku\Entity\HomesTrait;
+use Kynx\Saiku\Entity\SaikuAcl;
+use Kynx\Saiku\Entity\SaikuFile;
+use Kynx\Saiku\Entity\SaikuFolder;
 
 final class SaikuBackup
 {
@@ -38,12 +41,12 @@ final class SaikuBackup
         return $backup;
     }
 
-    public function restore(Backup $backup): void
-    {
-        $this->restoreUsers($backup);
-    }
-
-    private function getAcls(AbstractObject $node)
+    /**
+     * @param AbstractNode $node
+     *
+     * @return \Generator|SaikuAcl[]
+     */
+    private function getAcls(AbstractNode $node)
     {
         $path = $node->getPath();
         yield $path => $this->client->getAcl($node->getPath());

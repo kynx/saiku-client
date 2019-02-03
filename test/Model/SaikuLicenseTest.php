@@ -10,7 +10,7 @@ namespace KynxTest\Saiku\Model;
 
 use DateTimeImmutable;
 use Kynx\Saiku\Exception\HydrationException;
-use Kynx\Saiku\Model\SaikuLicense;
+use Kynx\Saiku\Entity\SaikuLicense;
 use PHPUnit\Framework\TestCase;
 
 class SaikuLicenseTest extends TestCase
