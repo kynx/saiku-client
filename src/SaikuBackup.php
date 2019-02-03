@@ -17,25 +17,45 @@ use Kynx\Saiku\Entity\SaikuFolder;
 
 final class SaikuBackup
 {
-    private $client;
+    use HomesTrait;
 
-    public function __construct(SaikuClient $client)
+    private $client;
+    private $includeLicense;
+
+    public function __construct(SaikuClient $client, bool $includeLicense = false)
     {
         $this->client = $client;
+        $this->includeLicense = $includeLicense;
     }
 
     public function backup(): Backup
     {
         $backup = new Backup();
-        $repository = $this->client->getRepository();
-        $backup->setRepository($repository);
 
-        foreach ($this->getAcls($repository) as $path => $acl) {
-            $backup->addAcl($path, $acl);
+        $repository = $this->client->getRespository(true);
+
+        if ($this->includeLicense) {
+            $backup->setLicense($this->getLicense($repository));
+        }
+
+        $homes = $this->getHomes($repository);
+        if ($homes instanceof SaikuFolder) {
+            $backup->setHomes($homes);
+            foreach ($this->getAcls($homes) as $path => $acl) {
+                $backup->addAcl($path, $acl);
+            }
         }
 
         foreach ($this->client->getUsers() as $user) {
             $backup->addUser($user);
+        }
+
+        foreach ($this->client->getSchemas(true) as $schema) {
+            $backup->addSchema($schema);
+        }
+
+        foreach ($this->client->getDatasources() as $datasource) {
+            $backup->addDatasource($datasource);
         }
 
         return $backup;
@@ -49,42 +69,35 @@ final class SaikuBackup
     private function getAcls(AbstractNode $node)
     {
         $path = $node->getPath();
-        yield $path => $this->client->getAcl($node->getPath());
+        $acl = $this->client->getAcl($node->getPath());
+        if ($acl !== null) {
+            yield $path => $this->client->getAcl($node->getPath());
+        }
 
         if ($node instanceof SaikuFolder) {
             foreach ($node->getRepoObjects() as $child) {
                 foreach ($this->getAcls($child) as $path => $acl) {
-                    yield $path => $acl;
+                    if ($acl !== null) {
+                        yield $path => $this->client->getAcl($node->getPath());
+                    }
                 }
             }
         }
     }
 
-    private function restoreUsers(Backup $backup): void
+    private function getLicense(SaikuFolder $repository): ?SaikuFile
     {
-        $existing = [];
-        foreach ($this->client->getUsers() as $user) {
-            $existing[$user->getUsername()] = $user;
-        }
-        $restored = [];
-
-        foreach ($backup->getUsers() as $user) {
-            $userName = $user->getUsername();
-            if (isset($existing[$userName])) {
-                $this->client->updateUserAndPassword($user);
-            } else {
-                $this->client->createUser($user);
+        foreach ($repository->getRepoObjects() as $object) {
+            if ($object instanceof SaikuFile && $object->getFileType() == SaikuFile::FILETYPE_LICENSE) {
+                return $object;
             }
-            $restored[$userName] = $user;
+            if ($object instanceof SaikuFolder) {
+                $license = $this->getLicense($object);
+                if ($license !== null) {
+                    return $license;
+                }
+            }
         }
-
-        foreach (array_diff_key($existing, $restored) as $user) {
-            $this->client->deleteUser($user);
-        }
-    }
-
-    private function restoreNode(AbstractObject $node, Backup $backup): void
-    {
-
+        return null;
     }
 }
