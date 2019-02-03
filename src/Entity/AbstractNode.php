@@ -41,9 +41,13 @@ abstract class AbstractNode extends AbstractEntity
     protected $acl = [];
 
     /**
+     * Factory returning `SaikuFile` or `SaikuFolder` based on type
+     *
      * @param array|string $json
+     *
+     * @return AbstractNode
      */
-    public static function createObject($json)
+    public static function getInstance($json): AbstractNode
     {
         $properties = $json;
         if (is_string($json)) {
@@ -155,5 +159,20 @@ abstract class AbstractNode extends AbstractEntity
     public function setAcl(array $acl): void
     {
         $this->acl = $acl;
+    }
+
+    protected function hydrate(array $properties): void
+    {
+        $this->setJavaClass($properties['@class']);
+        unset($properties['@class']);
+        parent::hydrate($properties);
+    }
+
+    protected function extract(): array
+    {
+        $extracted = parent::extract();
+        $extracted['@class'] = $extracted['javaClass'];
+        unset($extracted['javaClass']);
+        return $extracted;
     }
 }

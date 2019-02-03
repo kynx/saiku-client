@@ -18,7 +18,11 @@ final class SaikuFile extends AbstractNode
     /**
      * @var string
      */
-    private $fileType;
+    protected $fileType;
+    /**
+     * @var string
+     */
+    protected $content;
 
     public function getFileType(): string
     {
@@ -28,6 +32,25 @@ final class SaikuFile extends AbstractNode
     public function setFileType(string $fileType): void
     {
         $this->fileType = $fileType;
+    }
+
+    /**
+     * @return string
+     */
+    public function getContent(): ?string
+    {
+        return $this->content;
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return SaikuFile
+     */
+    public function setContent(string $content): SaikuFile
+    {
+        $this->content = $content;
+        return $this;
     }
 
     public static function getAllFiletypes(): array
