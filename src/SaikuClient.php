@@ -302,7 +302,7 @@ final class SaikuClient
         }
 
         if ($response->getStatusCode() == 200) {
-            $folder = new Folder((string) $response->getBody());
+            $folder = new Folder(['repoObjects' => $this->decodeResponse($response)]);
             if ($contents) {
                 $this->populateFolderContents($folder);
             }

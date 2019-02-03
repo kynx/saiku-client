@@ -15,21 +15,6 @@ final class Folder extends AbstractNode
      */
     protected $repoObjects = [];
 
-    public function __construct($json = null)
-    {
-        $items = $json;
-        if (is_string($json)) {
-            $items = json_decode($json, true);
-        }
-        if (is_array($items) && isset($items['path'])) {
-            parent::__construct($items);
-        } else {
-            foreach ($items as $item) {
-                $this->repoObjects[] = self::getInstance($item);
-            }
-        }
-    }
-
     /**
      * @return AbstractNode[]
      */
@@ -48,7 +33,8 @@ final class Folder extends AbstractNode
 
     protected function hydrate(array $properties): void
     {
-        foreach($properties['repoObjects'] as $objectProperties) {
+        $repoObjects = $properties['repoObjects'] ?? [];
+        foreach($repoObjects as $objectProperties) {
             $this->repoObjects[] = self::getInstance($objectProperties);
         }
         unset($properties['repoObjects']);

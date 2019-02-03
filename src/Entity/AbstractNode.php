@@ -22,10 +22,6 @@ abstract class AbstractNode extends AbstractEntity
     /**
      * @var string
      */
-    protected $type;
-    /**
-     * @var string
-     */
     protected $name;
     /**
      * @var string
@@ -68,33 +64,17 @@ abstract class AbstractNode extends AbstractEntity
     /**
      * @return string
      */
-    public function getJavaClass(): string
+    public function getId(): string
     {
-        return $this->javaClass;
-    }
-
-    /**
-     * @param string $aClass
-     */
-    public function setJavaClass(string $aClass): void
-    {
-        $this->javaClass = $aClass;
+        return $this->id;
     }
 
     /**
      * @return string
      */
-    public function getType(): string
+    public function getJavaClass(): ?string
     {
-        return $this->type;
-    }
-
-    /**
-     * @param string $type
-     */
-    public function setType(string $type): void
-    {
-        $this->type = $type;
+        return $this->javaClass;
     }
 
     /**
@@ -111,22 +91,6 @@ abstract class AbstractNode extends AbstractEntity
     public function setName(string $name): void
     {
         $this->name = $name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * @param string $id
-     */
-    public function setId(string $id): void
-    {
-        $this->id = $id;
     }
 
     /**
@@ -163,7 +127,7 @@ abstract class AbstractNode extends AbstractEntity
 
     protected function hydrate(array $properties): void
     {
-        $this->setJavaClass($properties['@class']);
+        $this->javaClass = $properties['@class'] ?? null;
         unset($properties['@class']);
         parent::hydrate($properties);
     }
@@ -173,6 +137,11 @@ abstract class AbstractNode extends AbstractEntity
         $extracted = parent::extract();
         $extracted['@class'] = $extracted['javaClass'];
         unset($extracted['javaClass']);
+        if ($this instanceof Folder) {
+            $extracted['type'] = self::TYPE_FOLDER;
+        } else {
+            $extracted['type'] = self::TYPE_FILE;
+        }
         return $extracted;
     }
 }

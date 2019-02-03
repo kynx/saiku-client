@@ -67,17 +67,6 @@ final class Datasource extends AbstractEntity
     }
 
     /**
-     * @param string $id
-     *
-     * @return Datasource
-     */
-    public function setId(string $id): Datasource
-    {
-        $this->id = $id;
-        return $this;
-    }
-
-    /**
      * @return string
      */
     public function getDriver(): ?string
