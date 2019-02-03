@@ -11,9 +11,9 @@ namespace Kynx\Saiku;
 use Kynx\Saiku\Entity\AbstractNode;
 use Kynx\Saiku\Entity\Backup;
 use Kynx\Saiku\Entity\HomesTrait;
-use Kynx\Saiku\Entity\SaikuAcl;
-use Kynx\Saiku\Entity\SaikuFile;
-use Kynx\Saiku\Entity\SaikuFolder;
+use Kynx\Saiku\Entity\Acl;
+use Kynx\Saiku\Entity\File;
+use Kynx\Saiku\Entity\Folder;
 
 final class SaikuBackup
 {
@@ -39,7 +39,7 @@ final class SaikuBackup
         }
 
         $homes = $this->getHomes($repository);
-        if ($homes instanceof SaikuFolder) {
+        if ($homes instanceof Folder) {
             $backup->setHomes($homes);
             foreach ($this->getAcls($homes) as $path => $acl) {
                 $backup->addAcl($path, $acl);
@@ -64,7 +64,7 @@ final class SaikuBackup
     /**
      * @param AbstractNode $node
      *
-     * @return \Generator|SaikuAcl[]
+     * @return \Generator|Acl[]
      */
     private function getAcls(AbstractNode $node)
     {
@@ -74,7 +74,7 @@ final class SaikuBackup
             yield $path => $this->client->getAcl($node->getPath());
         }
 
-        if ($node instanceof SaikuFolder) {
+        if ($node instanceof Folder) {
             foreach ($node->getRepoObjects() as $child) {
                 foreach ($this->getAcls($child) as $path => $acl) {
                     if ($acl !== null) {
@@ -85,13 +85,13 @@ final class SaikuBackup
         }
     }
 
-    private function getLicense(SaikuFolder $repository): ?SaikuFile
+    private function getLicense(Folder $repository): ?File
     {
         foreach ($repository->getRepoObjects() as $object) {
-            if ($object instanceof SaikuFile && $object->getFileType() == SaikuFile::FILETYPE_LICENSE) {
+            if ($object instanceof File && $object->getFileType() == File::FILETYPE_LICENSE) {
                 return $object;
             }
-            if ($object instanceof SaikuFolder) {
+            if ($object instanceof Folder) {
                 $license = $this->getLicense($object);
                 if ($license !== null) {
                     return $license;

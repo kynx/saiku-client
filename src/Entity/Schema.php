@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Entity;
 
-final class SaikuSchema extends AbstractEntity
+final class Schema extends AbstractEntity
 {
     /**
      * @var string
@@ -38,9 +38,9 @@ final class SaikuSchema extends AbstractEntity
     /**
      * @param string $name
      *
-     * @return SaikuSchema
+     * @return Schema
      */
-    public function setName(string $name): SaikuSchema
+    public function setName(string $name): Schema
     {
         $this->name = $name;
         return $this;
@@ -57,9 +57,9 @@ final class SaikuSchema extends AbstractEntity
     /**
      * @param string $path
      *
-     * @return SaikuSchema
+     * @return Schema
      */
-    public function setPath(string $path): SaikuSchema
+    public function setPath(string $path): Schema
     {
         $this->path = $path;
         return $this;
@@ -76,9 +76,9 @@ final class SaikuSchema extends AbstractEntity
     /**
      * @param string $type
      *
-     * @return SaikuSchema
+     * @return Schema
      */
-    public function setType(?string $type): SaikuSchema
+    public function setType(?string $type): Schema
     {
         $this->type = $type;
         return $this;
@@ -95,9 +95,9 @@ final class SaikuSchema extends AbstractEntity
     /**
      * @param string $xml
      *
-     * @return SaikuSchema
+     * @return Schema
      */
-    public function setXml(string $xml): SaikuSchema
+    public function setXml(string $xml): Schema
     {
         $this->xml = $xml;
         return $this;

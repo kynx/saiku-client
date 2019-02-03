@@ -8,18 +8,15 @@ declare(strict_types=1);
 
 namespace KynxTest\Saiku\Service;
 
-use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Cookie\SetCookie;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Stream;
 use Kynx\Saiku\Exception\BadLoginException;
 use Kynx\Saiku\Exception\SaikuExceptionInterface;
 use Kynx\Saiku\Exception\UserException;
-use Kynx\Saiku\Entity\SaikuLicense;
-use Kynx\Saiku\Entity\SaikuUser;
+use Kynx\Saiku\Entity\License;
+use Kynx\Saiku\Entity\User;
 use Kynx\Saiku\SaikuClient;
 use PHPUnit\Framework\TestCase as TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -32,6 +29,8 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class SaikuClientIntegrationTest extends TestCase
 {
+    use IntegrationTrait;
+
     private const ADMIN_ID = 1;
     private const USER_ID = 2;
     private const INVALID_USER_ID = 9999;
@@ -62,29 +61,10 @@ final class SaikuClientIntegrationTest extends TestCase
 
         $this->dump = $GLOBALS['DUMP_HISTORY'] ?? false;
 
-        $this->cookieJar = new CookieJar();
-        $history = Middleware::history($this->history);
-        $stack = HandlerStack::create();
-        $stack->push($history);
-
-        $options = [
-            'base_uri' => $GLOBALS['SAIKU_URL'],
-            'handler' => $stack,
-            'cookies' => $this->cookieJar,
-        ];
-
-        $client = new Client($options);
-        $this->saiku = new SaikuClient($client);
-        $this->saiku->setUsername($GLOBALS['SAIKU_USERNAME'])
-            ->setPassword($GLOBALS['SAIKU_PASSWORD']);
+        $this->saiku = $this->getSaiku();
 
         $this->loadRepository();
         $this->history = [];
-    }
-
-    private function isConfigured()
-    {
-        return isset($GLOBALS['SAIKU_URL']) && isset($GLOBALS['SAIKU_USERNAME']) && isset($GLOBALS['SAIKU_PASSWORD']);
     }
 
     public function tearDown()
@@ -163,7 +143,7 @@ final class SaikuClientIntegrationTest extends TestCase
     public function testGetUserReturnsUser()
     {
         $actual = $this->saiku->getUser(self::ADMIN_ID);
-        $this->assertInstanceOf(SaikuUser::class, $actual);
+        $this->assertInstanceOf(User::class, $actual);
         $this->assertEquals(self::ADMIN_ID, $actual->getId());
     }
 
@@ -175,7 +155,7 @@ final class SaikuClientIntegrationTest extends TestCase
 
     public function testCreateUserCreates()
     {
-        $user = new SaikuUser();
+        $user = new User();
         $user->setUsername('foo@test')
             ->setPassword('blahblahblah')
             ->setEmail('foo@example.com');
@@ -197,7 +177,7 @@ final class SaikuClientIntegrationTest extends TestCase
     public function testUpdateUser()
     {
         $user = $this->saiku->getUser(self::ADMIN_ID);
-        $this->assertInstanceOf(SaikuUser::class, $user);
+        $this->assertInstanceOf(User::class, $user);
         $oldEmail = $user->getEmail();
         $oldPassword = $user->getPassword();
         $this->assertNotEquals('another@example.com', $oldEmail);
@@ -222,7 +202,7 @@ final class SaikuClientIntegrationTest extends TestCase
     public function testUpdateNoIdThrowsException()
     {
         $this->expectException(UserException::class);
-        $user = new SaikuUser();
+        $user = new User();
         $user->setUsername('foo@test')
             ->setPassword('foo');
         $this->saiku->updateUser($user);
@@ -231,7 +211,7 @@ final class SaikuClientIntegrationTest extends TestCase
     public function testUpdateNonexistentUserThrowsException()
     {
         $this->expectException(UserException::class);
-        $user = new SaikuUser();
+        $user = new User();
         $user->setId(self::INVALID_USER_ID)
             ->setUsername('foo@test')
             ->setPassword('foo');
@@ -241,7 +221,7 @@ final class SaikuClientIntegrationTest extends TestCase
     public function testUpdateUserAndPasswordUpdatesPassword()
     {
         $user = $this->saiku->getUser(self::USER_ID);
-        $this->assertInstanceOf(SaikuUser::class, $user);
+        $this->assertInstanceOf(User::class, $user);
         $oldPassword = $user->getPassword();
         $user->setPassword('foo');
 
@@ -249,13 +229,12 @@ final class SaikuClientIntegrationTest extends TestCase
         $this->assertEquals(self::USER_ID, $actual->getId());
         $this->assertStringStartsWith('$2a$', $actual->getPassword());
         $this->assertNotEquals($oldPassword, $actual->getPassword());
-
     }
 
     public function testGetLicenseReturnsLicense()
     {
         $actual = $this->saiku->getLicense();
-        $this->assertInstanceOf(SaikuLicense::class, $actual);
+        $this->assertInstanceOf(License::class, $actual);
     }
 
     public function testSetLicense()
@@ -265,7 +244,7 @@ final class SaikuClientIntegrationTest extends TestCase
         $this->saiku->setLicense($stream);
 
         $actual = $this->saiku->getLicense();
-        $this->assertInstanceOf(SaikuLicense::class, $actual);
+        $this->assertInstanceOf(License::class, $actual);
     }
 
     private function getInvalidSessionCookie(): SetCookie
@@ -279,7 +258,9 @@ final class SaikuClientIntegrationTest extends TestCase
 
     private function loadRepository()
     {
-        $this->checkLicense();
+        if (! $this->checkLicense($this->saiku)) {
+            $this->markTestSkipped(sprintf("Error checking license: %s", $e->getMessage()));
+        }
 
         $fh = fopen('zip://' . __DIR__ . '/repo.zip#backup.xml', 'r');
         $stream = new Stream($fh);
@@ -291,38 +272,5 @@ final class SaikuClientIntegrationTest extends TestCase
         } finally {
             fclose($fh);
         }
-    }
-
-    private function checkLicense()
-    {
-        try {
-            $this->saiku->getLicense();
-        } catch (LicenseException $e) {
-            $this->loadLicense();
-        } catch (SaikuException $e) {
-            $this->markTestSkipped(sprintf("Error checking license: %s", $e->getMessage()));
-        }
-    }
-
-    private function loadLicense()
-    {
-        $file = $this->getLicenseFile();
-        $fh = fopen($file, 'r');
-        if (! $fh) {
-            $this->markTestSkipped(sprintf("Couldn't open '%s' for reading", $file));
-        }
-        $stream = new Stream($fh);
-        try {
-            $this->saiku->setLicense($stream);
-        } catch (SaikuExceptionInterface $e) {
-            $this->markTestSkipped(sprintf("Error loading license from '%s: %s", $file, $e->getMessage()));
-        } finally {
-            fclose($fh);
-        }
-    }
-
-    private function getLicenseFile()
-    {
-        return __DIR__ . '/../license.lic';
     }
 }

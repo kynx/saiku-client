@@ -11,8 +11,8 @@ namespace Kynx\Saiku;
 use Kynx\Saiku\Entity\AbstractNode;
 use Kynx\Saiku\Entity\Backup;
 use Kynx\Saiku\Entity\HomesTrait;
-use Kynx\Saiku\Entity\SaikuFile;
-use Kynx\Saiku\Entity\SaikuFolder;
+use Kynx\Saiku\Entity\File;
+use Kynx\Saiku\Entity\Folder;
 
 final class SaikuRestore
 {
@@ -121,7 +121,7 @@ final class SaikuRestore
         foreach ($this->flattenRepo($backup->getHomes()) as $resource) {
             $path = $resource->getPath();
             // 500 error if you try and POST an existing folder
-            if ($resource instanceof SaikuFile || ! isset($existing[$path])) {
+            if ($resource instanceof File || ! isset($existing[$path])) {
                 $this->client->storeResource($resource);
             }
 
@@ -139,16 +139,16 @@ final class SaikuRestore
     }
 
     /**
-     * @param SaikuFolder $folder
+     * @param Folder $folder
      *
      * @return \Generator|AbstractNode[]
      */
-    private function flattenRepo(SaikuFolder $folder)
+    private function flattenRepo(Folder $folder)
     {
         foreach ($folder->getRepoObjects() as $object) {
             yield $object->getPath() => $object;
 
-            if ($object instanceof SaikuFolder) {
+            if ($object instanceof Folder) {
                 foreach ($this->flattenRepo($object) as $path => $child) {
                     yield $path => $child;
                 }

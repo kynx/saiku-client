@@ -15,7 +15,7 @@ namespace Kynx\Saiku\Entity;
  * We _could_ parse the advanced string to populate things like username, driver, etc. But for now we're just matching
  * upstream functionality.
  */
-final class SaikuDatasource extends AbstractEntity
+final class Datasource extends AbstractEntity
 {
     /**
      * @var string
@@ -69,9 +69,9 @@ final class SaikuDatasource extends AbstractEntity
     /**
      * @param string $id
      *
-     * @return SaikuDatasource
+     * @return Datasource
      */
-    public function setId(string $id): SaikuDatasource
+    public function setId(string $id): Datasource
     {
         $this->id = $id;
         return $this;
@@ -88,9 +88,9 @@ final class SaikuDatasource extends AbstractEntity
     /**
      * @param string $driver
      *
-     * @return SaikuDatasource
+     * @return Datasource
      */
-    public function setDriver(string $driver): SaikuDatasource
+    public function setDriver(string $driver): Datasource
     {
         $this->driver = $driver;
         return $this;
@@ -107,9 +107,9 @@ final class SaikuDatasource extends AbstractEntity
     /**
      * @param string $path
      *
-     * @return SaikuDatasource
+     * @return Datasource
      */
-    public function setPath(string $path): SaikuDatasource
+    public function setPath(string $path): Datasource
     {
         $this->path = $path;
         return $this;
@@ -126,9 +126,9 @@ final class SaikuDatasource extends AbstractEntity
     /**
      * @param string $username
      *
-     * @return SaikuDatasource
+     * @return Datasource
      */
-    public function setUsername(string $username): SaikuDatasource
+    public function setUsername(string $username): Datasource
     {
         $this->username = $username;
         return $this;
@@ -145,9 +145,9 @@ final class SaikuDatasource extends AbstractEntity
     /**
      * @param string $password
      *
-     * @return SaikuDatasource
+     * @return Datasource
      */
-    public function setPassword(string $password): SaikuDatasource
+    public function setPassword(string $password): Datasource
     {
         $this->password = $password;
         return $this;
@@ -164,9 +164,9 @@ final class SaikuDatasource extends AbstractEntity
     /**
      * @param string $schema
      *
-     * @return SaikuDatasource
+     * @return Datasource
      */
-    public function setSchema(string $schema): SaikuDatasource
+    public function setSchema(string $schema): Datasource
     {
         $this->schema = $schema;
         return $this;
@@ -183,9 +183,9 @@ final class SaikuDatasource extends AbstractEntity
     /**
      * @param string $connectionname
      *
-     * @return SaikuDatasource
+     * @return Datasource
      */
-    public function setConnectionName(string $connectionname): SaikuDatasource
+    public function setConnectionName(string $connectionname): Datasource
     {
         $this->connectionname = $connectionname;
         return $this;
@@ -202,9 +202,9 @@ final class SaikuDatasource extends AbstractEntity
     /**
      * @param string $jdbcurl
      *
-     * @return SaikuDatasource
+     * @return Datasource
      */
-    public function setJdbcUrl(string $jdbcurl): SaikuDatasource
+    public function setJdbcUrl(string $jdbcurl): Datasource
     {
         $this->jdbcurl = $jdbcurl;
         return $this;
@@ -221,9 +221,9 @@ final class SaikuDatasource extends AbstractEntity
     /**
      * @param string $connectiontype
      *
-     * @return SaikuDatasource
+     * @return Datasource
      */
-    public function setConnectionType(string $connectiontype): SaikuDatasource
+    public function setConnectionType(string $connectiontype): Datasource
     {
         $this->connectiontype = $connectiontype;
         return $this;
@@ -240,9 +240,9 @@ final class SaikuDatasource extends AbstractEntity
     /**
      * @param string $advanced
      *
-     * @return SaikuDatasource
+     * @return Datasource
      */
-    public function setAdvanced(string $advanced): SaikuDatasource
+    public function setAdvanced(string $advanced): Datasource
     {
         $this->advanced = $advanced;
         return $this;

@@ -11,10 +11,10 @@ namespace Kynx\Saiku\Entity;
 
 trait HomesTrait
 {
-    protected function getHomes(SaikuFolder $repository): ?SaikuFolder
+    protected function getHomes(Folder $repository): ?Folder
     {
         foreach ($repository->getRepoObjects() as $object) {
-            if ($object instanceof SaikuFolder and $object->getPath() == '/homes') {
+            if ($object instanceof Folder and $object->getPath() == '/homes') {
                 return $object;
             }
         }

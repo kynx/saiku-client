@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Entity;
 
-final class SaikuUser extends AbstractEntity
+final class User extends AbstractEntity
 {
     const ROLE_ADMIN = 'ROLE_ADMIN';
     const ROLE_USER = 'ROLE_USER';
@@ -45,9 +45,9 @@ final class SaikuUser extends AbstractEntity
     /**
      * @param int $id
      *
-     * @return SaikuUser
+     * @return User
      */
-    public function setId(?int $id): SaikuUser
+    public function setId(?int $id): User
     {
         $this->id = $id;
         return $this;
@@ -64,9 +64,9 @@ final class SaikuUser extends AbstractEntity
     /**
      * @param string $username
      *
-     * @return SaikuUser
+     * @return User
      */
-    public function setUsername(string $username): SaikuUser
+    public function setUsername(string $username): User
     {
         $this->username = $username;
         return $this;
@@ -83,9 +83,9 @@ final class SaikuUser extends AbstractEntity
     /**
      * @param string $password
      *
-     * @return SaikuUser
+     * @return User
      */
-    public function setPassword(string $password): SaikuUser
+    public function setPassword(string $password): User
     {
         $this->password = $password;
         return $this;
@@ -102,9 +102,9 @@ final class SaikuUser extends AbstractEntity
     /**
      * @param string $email
      *
-     * @return SaikuUser
+     * @return User
      */
-    public function setEmail(string $email): SaikuUser
+    public function setEmail(string $email): User
     {
         $this->email = $email;
         return $this;
@@ -121,9 +121,9 @@ final class SaikuUser extends AbstractEntity
     /**
      * @param string[] $roles
      *
-     * @return SaikuUser
+     * @return User
      */
-    public function setRoles(array $roles): SaikuUser
+    public function setRoles(array $roles): User
     {
         $this->roles = $roles;
         return $this;

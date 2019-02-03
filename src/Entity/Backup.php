@@ -19,27 +19,27 @@ final class Backup
      */
     private $created;
     /**
-     * @var SaikuFile
+     * @var File
      */
     private $license;
     /**
-     * @var SaikuFolder
+     * @var Folder
      */
     private $homes;
     /**
-     * @var SaikuAcl[]
+     * @var Acl[]
      */
     private $acls = [];
     /**
-     * @var SaikuUser[]
+     * @var User[]
      */
     private $users = [];
     /**
-     * @var SaikuDatasource[]
+     * @var Datasource[]
      */
     private $datasources = [];
     /**
-     * @var SaikuSchema[]
+     * @var Schema[]
      */
     private $schemas = [];
 
@@ -51,21 +51,21 @@ final class Backup
         if (is_array($backup)) {
             $this->created = new DateTimeImmutable($backup['created']);
             if (isset($backup['license'])) {
-                $this->license = new SaikuFile($backup['license']);
+                $this->license = new File($backup['license']);
             }
 
-            $this->homes = new SaikuFolder($backup['homes']);
+            $this->homes = new Folder($backup['homes']);
             foreach ($backup['acls'] as $path => $acl) {
-                $this->addAcl($path, new SaikuAcl($acl));
+                $this->addAcl($path, new Acl($acl));
             }
             foreach ($backup['schemas'] as $schema) {
-                $this->addSchema(new SaikuSchema($schema));
+                $this->addSchema(new Schema($schema));
             }
             foreach ($backup['datasources'] as $datasource) {
-                $this->addDatasource(new SaikuDatasource($datasource));
+                $this->addDatasource(new Datasource($datasource));
             }
             foreach ($backup['users'] as $user) {
-                $this->addUser(new SaikuUser($user));
+                $this->addUser(new User($user));
             }
         } else {
             $this->created = new DateTimeImmutable("now", new DateTimeZone("UTC"));
@@ -81,58 +81,58 @@ final class Backup
     }
 
     /**
-     * @return SaikuFile
+     * @return File
      */
-    public function getLicense(): ?SaikuFile
+    public function getLicense(): ?File
     {
         return $this->license;
     }
 
     /**
-     * @param SaikuFile $license
+     * @param File $license
      *
      * @return Backup
      */
-    public function setLicense(?SaikuFile $license): Backup
+    public function setLicense(?File $license): Backup
     {
         $this->license = $license;
         return $this;
     }
 
     /**
-     * @return SaikuFolder
+     * @return Folder
      */
-    public function getHomes(): SaikuFolder
+    public function getHomes(): Folder
     {
         return $this->homes;
     }
 
     /**
-     * @param SaikuFolder $homes
+     * @param Folder $homes
      *
      * @return Backup
      */
-    public function setHomes(SaikuFolder $homes): Backup
+    public function setHomes(Folder $homes): Backup
     {
         $this->homes = $homes;
         return $this;
     }
 
     /**
-     * @return SaikuAcl[]
+     * @return Acl[]
      */
-    public function getAcl(string $path): SaikuAcl
+    public function getAcl(string $path): Acl
     {
         return $this->acls[$path];
     }
 
-    public function addAcl(string $path, SaikuAcl $acl)
+    public function addAcl(string $path, Acl $acl)
     {
         $this->acls[$path] = $acl;
     }
 
     /**
-     * @return SaikuUser[]
+     * @return User[]
      */
     public function getUsers(): array
     {
@@ -140,35 +140,35 @@ final class Backup
     }
 
     /**
-     * @param SaikuUser $user
+     * @param User $user
      */
-    public function addUser(SaikuUser $user): void
+    public function addUser(User $user): void
     {
         $this->users[$user->getUsername()] = $user;
     }
 
     /**
-     * @return SaikuDatasource[]
+     * @return Datasource[]
      */
     public function getDatasources(): array
     {
         return $this->datasources;
     }
 
-    public function addDatasource(SaikuDatasource $datasource): void
+    public function addDatasource(Datasource $datasource): void
     {
         $this->datasources[$datasource->getId()] = $datasource;
     }
 
     /**
-     * @return SaikuSchema[]
+     * @return Schema[]
      */
     public function getSchemas(): array
     {
         return $this->schemas;
     }
 
-    public function addSchema(SaikuSchema $schema): void
+    public function addSchema(Schema $schema): void
     {
         $this->schemas[$schema->getName()] = $schema;
     }

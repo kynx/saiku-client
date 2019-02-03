@@ -6,26 +6,26 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku\Model;
+namespace KynxTest\Saiku\Entity;
 
 use DateTimeImmutable;
 use Kynx\Saiku\Exception\HydrationException;
-use Kynx\Saiku\Entity\SaikuLicense;
+use Kynx\Saiku\Entity\License;
 use PHPUnit\Framework\TestCase;
 
-class SaikuLicenseTest extends TestCase
+class LicenseTest extends TestCase
 {
     public function testConstructorHydratesExpiration()
     {
         $json = '{"expiration":"2019-01-28T14:03:39+00:00"}';
-        $actual = new SaikuLicense($json);
+        $actual = new License($json);
         $this->assertInstanceOf(DateTimeImmutable::class, $actual->getExpiration());
     }
 
     public function testConstructorHydratesNullExpiration()
     {
         $json = '{"expiration":""}';
-        $actual = new SaikuLicense($json);
+        $actual = new License($json);
         $this->assertNull($actual->getExpiration());
     }
 
@@ -33,13 +33,13 @@ class SaikuLicenseTest extends TestCase
     {
         $this->expectException(HydrationException::class);
         $json = '{"expiration":"blah"}';
-        new SaikuLicense($json);
+        new License($json);
     }
 
     public function testToArrayExtractsExpiration()
     {
         $expiration = new DateTimeImmutable("2019-01-28T14:03:39+00:00");
-        $license = new SaikuLicense();
+        $license = new License();
         $license->setExpiration($expiration);
         $actual = $license->toArray();
         $this->assertEquals("2019-01-28T14:03:39+00:00", $actual['expiration']);

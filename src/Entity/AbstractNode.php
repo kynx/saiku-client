@@ -56,9 +56,9 @@ abstract class AbstractNode extends AbstractEntity
         if (is_array($properties)) {
             $type = $properties['type'] ?? null;
             if ($type == self::TYPE_FILE) {
-                return new SaikuFile($properties);
+                return new File($properties);
             } elseif ($type == self::TYPE_FOLDER) {
-                return new SaikuFolder($properties);
+                return new Folder($properties);
             }
             throw new HydrationException(sprintf("Unknown object type '%s'", $type));
         }

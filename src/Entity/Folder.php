@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Entity;
 
-final class SaikuFolder extends AbstractNode
+final class Folder extends AbstractNode
 {
     /**
      * @var AbstractNode[]

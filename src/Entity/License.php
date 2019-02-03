@@ -14,7 +14,7 @@ use DateTimeZone;
 use Exception;
 use Kynx\Saiku\Exception\HydrationException;
 
-final class SaikuLicense extends AbstractEntity
+final class License extends AbstractEntity
 {
     /**
      * @var DateTimeImmutable
@@ -60,9 +60,9 @@ final class SaikuLicense extends AbstractEntity
     /**
      * @param DateTimeImmutable $expiration
      *
-     * @return SaikuLicense
+     * @return License
      */
-    public function setExpiration(?DateTimeImmutable $expiration): SaikuLicense
+    public function setExpiration(?DateTimeImmutable $expiration): License
     {
         $this->expiration = $expiration;
         return $this;
@@ -79,9 +79,9 @@ final class SaikuLicense extends AbstractEntity
     /**
      * @param string $version
      *
-     * @return SaikuLicense
+     * @return License
      */
-    public function setVersion(string $version): SaikuLicense
+    public function setVersion(string $version): License
     {
         $this->version = $version;
         return $this;
@@ -98,9 +98,9 @@ final class SaikuLicense extends AbstractEntity
     /**
      * @param string $email
      *
-     * @return SaikuLicense
+     * @return License
      */
-    public function setEmail(string $email): SaikuLicense
+    public function setEmail(string $email): License
     {
         $this->email = $email;
         return $this;
@@ -117,9 +117,9 @@ final class SaikuLicense extends AbstractEntity
     /**
      * @param string $licenseType
      *
-     * @return SaikuLicense
+     * @return License
      */
-    public function setLicenseType(string $licenseType): SaikuLicense
+    public function setLicenseType(string $licenseType): License
     {
         $this->licenseType = $licenseType;
         return $this;
@@ -136,9 +136,9 @@ final class SaikuLicense extends AbstractEntity
     /**
      * @param string $licenseNumber
      *
-     * @return SaikuLicense
+     * @return License
      */
-    public function setLicenseNumber(string $licenseNumber): SaikuLicense
+    public function setLicenseNumber(string $licenseNumber): License
     {
         $this->licenseNumber = $licenseNumber;
         return $this;
@@ -155,9 +155,9 @@ final class SaikuLicense extends AbstractEntity
     /**
      * @param string $name
      *
-     * @return SaikuLicense
+     * @return License
      */
-    public function setName(string $name): SaikuLicense
+    public function setName(string $name): License
     {
         $this->name = $name;
         return $this;
@@ -174,9 +174,9 @@ final class SaikuLicense extends AbstractEntity
     /**
      * @param string $hostname
      *
-     * @return SaikuLicense
+     * @return License
      */
-    public function setHostname(string $hostname): SaikuLicense
+    public function setHostname(string $hostname): License
     {
         $this->hostname = $hostname;
         return $this;
@@ -193,9 +193,9 @@ final class SaikuLicense extends AbstractEntity
     /**
      * @param float $memoryLimit
      *
-     * @return SaikuLicense
+     * @return License
      */
-    public function setMemoryLimit(float $memoryLimit): SaikuLicense
+    public function setMemoryLimit(float $memoryLimit): License
     {
         $this->memoryLimit = $memoryLimit;
         return $this;

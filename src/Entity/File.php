@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Entity;
 
-final class SaikuFile extends AbstractNode
+final class File extends AbstractNode
 {
     const FILETYPE_DATASOURCE = 'sds';
     const FILETYPE_LICENSE = 'lic';
@@ -45,9 +45,9 @@ final class SaikuFile extends AbstractNode
     /**
      * @param string $content
      *
-     * @return SaikuFile
+     * @return File
      */
-    public function setContent(string $content): SaikuFile
+    public function setContent(string $content): File
     {
         $this->content = $content;
         return $this;

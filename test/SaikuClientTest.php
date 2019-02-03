@@ -18,7 +18,7 @@ use GuzzleHttp\Psr7\ServerRequest;
 use Kynx\Saiku\Exception\BadLoginException;
 use Kynx\Saiku\Exception\BadResponseException;
 use Kynx\Saiku\Exception\SaikuException;
-use Kynx\Saiku\Entity\SaikuUser;
+use Kynx\Saiku\Entity\User;
 use Kynx\Saiku\SaikuClient;
 use PHPUnit\Framework\TestCase as TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -218,7 +218,7 @@ class SaikuClientTest extends TestCase
         ]);
 
         $actual = $this->saiku->getUser(1);
-        $this->assertInstanceOf(SaikuUser::class, $actual);
+        $this->assertInstanceOf(User::class, $actual);
         $this->assertEquals(json_decode($user, true), $actual->toArray());
     }
 
