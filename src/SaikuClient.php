@@ -13,13 +13,6 @@ use GuzzleHttp\Cookie\CookieJarInterface;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\ServerException;
-use Kynx\Saiku\Exception\BadLoginException;
-use Kynx\Saiku\Exception\BadResponseException;
-use Kynx\Saiku\Exception\LicenseException;
-use Kynx\Saiku\Exception\ProxyException;
-use Kynx\Saiku\Exception\RepositoryException;
-use Kynx\Saiku\Exception\UserException;
-use Kynx\Saiku\Exception\SaikuException;
 use Kynx\Saiku\Entity\AbstractNode;
 use Kynx\Saiku\Entity\SaikuAcl;
 use Kynx\Saiku\Entity\SaikuDatasource;
@@ -28,6 +21,15 @@ use Kynx\Saiku\Entity\SaikuFolder;
 use Kynx\Saiku\Entity\SaikuLicense;
 use Kynx\Saiku\Entity\SaikuSchema;
 use Kynx\Saiku\Entity\SaikuUser;
+use Kynx\Saiku\Exception\BadLoginException;
+use Kynx\Saiku\Exception\BadResponseException;
+use Kynx\Saiku\Exception\DatasourceException;
+use Kynx\Saiku\Exception\LicenseException;
+use Kynx\Saiku\Exception\ProxyException;
+use Kynx\Saiku\Exception\RepositoryException;
+use Kynx\Saiku\Exception\SaikuException;
+use Kynx\Saiku\Exception\SchemaException;
+use Kynx\Saiku\Exception\UserException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
@@ -39,12 +41,14 @@ use Psr\Http\Message\StreamInterface;
  */
 final class SaikuClient
 {
-    const URL_BACKUP = 'rest/saiku/api/repository/zip/';
+    const URL_DATASOURCE = 'rest/saiku/admin/datasources/';
     const URL_INFO = 'rest/saiku/info';
     const URL_LICENSE = 'rest/saiku/api/license/';
     const URL_REPO = 'rest/saiku/api/repository/';
-    const URL_RESTORE = 'rest/saiku/api/repository/zipupload/';
-    const URL_SESSION = 'rest/saiku/session/';
+    const URL_REPO_ACL = 'rest/saiku/api/repository/resource/acl/';
+    const URL_REPO_RESOURCE = 'rest/saiku/api/repository/resource/';
+    const URL_SCHEMA = 'rest/saiku/admin/schema/';
+    const URL_SESSION = 'rest/saiku/session';
     const URL_USER = 'rest/saiku/admin/users/';
 
     private $client;
@@ -164,15 +168,16 @@ final class SaikuClient
     {
         try {
             $response = $this->lazyRequest('GET', self::URL_USER);
-            if ($response->getStatusCode() == '200') {
-                return array_map(function ($properties) {
-                    return new SaikuUser($properties);
-                }, json_decode($response->getBody(), true));
-            } else {
-                throw new BadResponseException(sprintf("Error getting users"), $response);
-            }
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if ($response->getStatusCode() == '200') {
+            return array_map(function (array $properties) {
+                return new SaikuUser($properties);
+            }, $this->decodeResponse($response));
+        } else {
+            throw new BadResponseException(sprintf("Error getting users"), $response);
         }
     }
 
@@ -186,11 +191,6 @@ final class SaikuClient
     {
         try {
             $response = $this->lazyRequest('GET', self::URL_USER . $id);
-            if ($response->getStatusCode() == '200') {
-                return new SaikuUser((string) $response->getBody());
-            } else {
-                throw new BadResponseException(sprintf("Error getting user id '%s':", $id), $response);
-            }
         } catch (ServerException $e) {
             // saiku throws a 500 error when user does not exist :(
             if ($e->getCode() == '500') {
@@ -199,6 +199,12 @@ final class SaikuClient
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if ($response->getStatusCode() == '200') {
+            return new SaikuUser((string) $response->getBody());
+        } else {
+            throw new BadResponseException(sprintf("Error getting user id '%s':", $id), $response);
         }
     }
 
@@ -269,37 +275,302 @@ final class SaikuClient
         }
     }
 
-    public function getRepository(?array $types = null): SaikuFolder
+    /**
+     * Returns folder containing entire repository
+     *
+     * Although the endpoint accepts a "path" parameter, using it always returns an empty response. From what I can tell
+     * this is a bug in org.saiku.repository.JackRabbitRepositoryManager#getRepoObjects that stops returning repository
+     * objects for a folder: folders are not processed because a conditional checks on whether it's a file first.
+     *
+     * @param bool $contents    If true, node contents are fetched as well
+     * @param array|null $types
+     * @return SaikuFolder
+     */
+    public function getRespository(bool $contents = false, ?array $types = null): SaikuFolder
     {
         try {
             if ($types === null) {
                 $types = SaikuFile::getAllFiletypes();
             }
-            $query = ['type' => join(',', $types)];
+            $query = [
+                'type' => join(',', $types),
+            ];
             $response = $this->lazyRequest('GET', self::URL_REPO, ['query' => $query]);
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
 
         if ($response->getStatusCode() == 200) {
-            return new SaikuFolder((string) $response->getBody());
+            $folder = new SaikuFolder((string) $response->getBody());
+            if ($contents) {
+                $this->populateFolderContents($folder);
+            }
+            return $folder;
         }
-        throw new RepositoryException("Couldn't get repository", $response->getStatusCode());
+
+        throw new RepositoryException(sprintf(
+            "Couldn't get repository: %s",
+            (string) $response->getBody()
+        ), $response->getStatusCode());
     }
 
-    public function saveObject(AbstractObject $object): void
+    public function getResource(string $path): string
     {
+        try {
+            $query = ['file' => $path];
+            $response = $this->lazyRequest('GET', self::URL_REPO_RESOURCE, ['query' => $query]);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
 
+        if ($response->getStatusCode() == 200) {
+            return (string) $response->getBody();
+        }
+
+        throw new RepositoryException(sprintf(
+            "Couldn't get resource at path '%s': %s",
+            $path,
+            (string) $response->getBody()
+        ), $response->getStatusCode());
     }
 
-    public function getAcl(string $path): SaikuAcl
+    public function storeResource(AbstractNode $resource): void
     {
+        $params = ['file' => $resource->getPath()];
+        if ($resource instanceof SaikuFile) {
+            $params['content'] = $resource->getContent();
+        }
 
+        try {
+            $this->lazyRequest('POST', self::URL_REPO_RESOURCE, ['form_params' => $params]);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    public function deleteResource(AbstractNode $resource): void
+    {
+        $query = ['file' => $resource->getPath()];
+        try {
+            $this->lazyRequest('DELETE', self::URL_REPO_RESOURCE, ['query' => $query]);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Returns ACL for node at `$path`, or `null` if none set
+     */
+    public function getAcl(string $path): ?SaikuAcl
+    {
+        $query = ['file' => $path];
+        try {
+            $response = $this->lazyRequest('GET', self::URL_REPO_ACL, ['query' => $query]);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if ($response->getStatusCode() == 200) {
+            $item = $this->decodeResponse($response);
+            if (isset($item['type'])) {
+                return new SaikuAcl($item);
+            }
+            return null;
+        }
+        throw new BadResponseException(sprintf("Couldn't get ACL at path '%s'", $path), $response);
     }
 
     public function setAcl(string $path, SaikuAcl $acl): void
     {
+        $params = [
+            'file' => $path,
+            'acl' => json_encode($acl->toArray()),
+        ];
 
+        try {
+            $this->lazyRequest('POST', self::URL_REPO_ACL, ['form_params' => $params]);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * @return SaikuDatasource[]
+     */
+    public function getDatasources(): array
+    {
+        try {
+            $response = $this->lazyRequest('GET', self::URL_DATASOURCE);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if ($response->getStatusCode() == 200) {
+            return array_map(function(array $item) {
+                return new SaikuDatasource($item);
+            }, $this->decodeResponse($response));
+        } else {
+            throw new BadResponseException("Couldn't get datasources", $response);
+        }
+    }
+
+    public function createDatasource(SaikuDatasource $datasource): SaikuDatasource
+    {
+        $options = [
+            'json' => $datasource->toArray(),
+        ];
+
+        try {
+            $response = $this->lazyRequest('POST', self::URL_DATASOURCE, $options);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if ($response->getStatusCode() == '200') {
+            return new SaikuDatasource((string) $response->getBody());
+        }
+
+        throw new BadResponseException("Couldn't create / update datasource", $response);
+    }
+
+    public function updateDatasource(SaikuDatasource $datasource): SaikuDatasource
+    {
+        if (! $datasource->getId()) {
+            throw new DatasourceException("Datasource must have an id");
+        }
+
+        $options = [
+            'json' => $datasource->toArray(),
+        ];
+
+        try {
+            $response = $this->lazyRequest('PUT', self::URL_DATASOURCE. $datasource->getId(), $options);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if ($response->getStatusCode() == '200') {
+            return new SaikuDatasource((string) $response->getBody());
+        }
+
+        throw new BadResponseException("Couldn't create / update datasource", $response);
+    }
+
+    public function deleteDatasource(SaikuDatasource $datasource): void
+    {
+        if (! $datasource->getId()) {
+            throw new DatasourceException("Datasource must have an id");
+        }
+
+        try {
+            $this->lazyRequest('DELETE', self::URL_DATASOURCE. $datasource->getId());
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * @return SaikuSchema[]
+     */
+    public function getSchemas(bool $contents = false): array
+    {
+        try {
+            $response = $this->lazyRequest('GET', self::URL_SCHEMA);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if ($response->getStatusCode() == 200) {
+            $schemas = array_map(function (array $item) {
+                return new SaikuSchema($item);
+            }, $this->decodeResponse($response));
+        } else {
+            throw new BadResponseException("Couldn't get datasources", $response);
+        }
+
+        if (! $contents) {
+            return $schemas;
+        }
+
+        return array_map(function (SaikuSchema $schema) {
+            $schema->setXml($this->getResource($schema->getPath()));
+            return $schema;
+        }, $schemas);
+    }
+
+    public function createSchema(SaikuSchema $schema): SaikuSchema
+    {
+        $this->validateSchema($schema);
+
+        $options = [
+            'multipart' => [
+                [
+                    'name' => 'name',
+                    'contents' => $schema->getName(),
+                ],
+                [
+                    'name' => 'file',
+                    'contents' => $schema->getXml()
+                ],
+            ],
+        ];
+
+        try {
+            // The api docs indicate that we should be passing an id, but schemas do not have one. From the source it's
+            // clear the name is expected.
+            $response = $this->lazyRequest('POST', self::URL_SCHEMA . $schema->getName(), $options);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if ($response->getStatusCode() == '200') {
+            return new SaikuSchema((string) $response->getBody());
+        }
+
+        throw new BadResponseException(sprintf("Failed to create schema '%s'", $schema->getName()), $response);
+    }
+
+    public function updateSchema(SaikuSchema $schema): SaikuSchema
+    {
+        $this->validateSchema($schema);
+
+        $options = [
+            'multipart' => [
+                [
+                    'name' => 'name',
+                    'contents' => $schema->getName(),
+                ],
+                [
+                    'name' => 'file',
+                    'contents' => $schema->getXml()
+                ],
+            ],
+        ];
+
+        try {
+            $response = $this->lazyRequest('PUT', self::URL_SCHEMA . $schema->getName(), $options);
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if ($response->getStatusCode() == '200') {
+            return new SaikuSchema((string) $response->getBody());
+        }
+
+        throw new BadResponseException(sprintf("Failed updating schema '%s'", $schema->getName()), $response);
+    }
+
+    public function deleteSchema(SaikuSchema $schema): void
+    {
+        $this->validateSchema($schema);
+
+        try {
+            // The api docs indicate that we should be passing an id, but schemas do not have one. From the source it's
+            // clear the name is expected.
+            $this->lazyRequest('DELETE', self::URL_SCHEMA . $schema->getName());
+        } catch (GuzzleException $e) {
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
+        }
     }
 
     public function getLicense(): SaikuLicense
@@ -362,9 +633,39 @@ final class SaikuClient
         return $response;
     }
 
+    private function validateSchema(SaikuSchema $schema)
+    {
+        if (! $schema->getName()) {
+            throw new SchemaException("Schema must have a name");
+        }
+        if (pathinfo($schema->getName(), PATHINFO_EXTENSION)) {
+            throw new SchemaException(sprintf(
+                "Schema names should not include an extension; '%s' found",
+                pathinfo($schema->getName(), PATHINFO_EXTENSION)
+            ));
+        }
+    }
+
+    private function populateFolderContents(SaikuFolder $folder): void
+    {
+        $contentType = [SaikuFile::FILETYPE_LICENSE, SaikuFile::FILETYPE_REPORT];
+        foreach ($folder->getRepoObjects() as $object) {
+            if ($object instanceof SaikuFolder) {
+                $this->populateFolderContents($object);
+            } elseif ($object instanceof SaikuFile && in_array($object->getFileType(), $contentType)) {
+                $object->setContent($this->getResource($object->getPath()));
+            }
+        }
+    }
+
     private function getCookieJar(): CookieJarInterface
     {
         return $this->client->getConfig('cookies');
+    }
+
+    private function decodeResponse(ResponseInterface $response): array
+    {
+        return json_decode((string) $response->getBody(), true);
     }
 
     private function isUnauthorisedException(GuzzleException $exception): bool
