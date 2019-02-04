@@ -18,8 +18,8 @@ care about!
 The safest way to run the tests is using [buggtb/saikuce]'s docker image:
 
 ```
-docker pull buggtb/saikuce
-docker run --rm -ti -p8080:8080 buggtb/saikuce
+docker pull kynx/saikuce
+docker run --rm -ti -p8080:8080 kynx/saikuce
 ```
 
 You will need a (free) [evaluation license] from Saiku to run the tests. Unfortunately their licensing server spends

@@ -274,6 +274,13 @@ final class SaikuClient
             // @todo Report upstream
             // The API docs state that we should be passing the username here. They're wrong: we need to pass the ID
             $this->lazyRequest('DELETE', self::URL_USER . $user->getId());
+        } catch (ServerException $e) {
+            // @todo Report upstream
+            // saiku throws 500 error when user does not exist :(
+            if ($e->getCode() == 500) {
+                return;
+            }
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }

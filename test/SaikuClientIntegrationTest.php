@@ -169,13 +169,13 @@ final class SaikuClientIntegrationTest extends TestCase
 
     public function testUpdateUserAndPasswordUpdatesPassword()
     {
-        $user = $this->saiku->getUser(self::USER_ID);
+        $user = $this->getUser("smith");
         $this->assertInstanceOf(User::class, $user);
         $oldPassword = $user->getPassword();
         $user->setPassword('foo');
 
         $actual = $this->saiku->updateUserAndPassword($user);
-        $this->assertEquals(self::USER_ID, $actual->getId());
+        $this->assertEquals("smith", $actual->getUsername());
         $this->assertStringStartsWith('$2a$', $actual->getPassword());
         $this->assertNotEquals($oldPassword, $actual->getPassword());
     }
@@ -189,7 +189,6 @@ final class SaikuClientIntegrationTest extends TestCase
         $this->assertNull($actual);
     }
 
-    /*
     public function testDeleteNonExistentThrowsNoWobblies()
     {
         $user = new User();
@@ -198,7 +197,6 @@ final class SaikuClientIntegrationTest extends TestCase
         $actual = $this->saiku->getUser(self::INVALID_USER_ID);
         $this->assertNull($actual);
     }
-    */
 
     public function testGetLicenseReturnsLicense()
     {
@@ -239,6 +237,16 @@ final class SaikuClientIntegrationTest extends TestCase
         } catch (SaikuExceptionInterface $e) {
             $this->markTestSkipped(sprintf("Error restoring repository: %s", $e->getMessage()));
         }
+    }
+
+    private function getUser($username): ?User
+    {
+        return array_reduce($this->saiku->getUsers(), function ($carry, User $user) use ($username) {
+            if ($carry instanceof User) {
+                return $carry;
+            }
+            return $user->getUsername() == $username ? $user : null;
+        }, null);
     }
 
     protected function tearDown()
