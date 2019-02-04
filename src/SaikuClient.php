@@ -192,6 +192,7 @@ final class SaikuClient
         try {
             $response = $this->lazyRequest('GET', self::URL_USER . $id);
         } catch (ServerException $e) {
+            // @fixme Report upstream
             // saiku throws a 500 error when user does not exist :(
             if ($e->getCode() == '500') {
                 return null;
@@ -253,6 +254,7 @@ final class SaikuClient
         try {
             $response = $this->lazyRequest('PUT', self::URL_USER . $user->getUsername(), ['json' => $data]);
         } catch (ServerException $e) {
+            // @todo Report upstream
             // Saiku has probably thrown a NullPointerException because the user doesn't exist. Would be nice
             // if it were a bit more specific
             throw new UserException("Error updating user. Are you sure they exist?");
@@ -269,7 +271,9 @@ final class SaikuClient
     public function deleteUser(User $user): void
     {
         try {
-            $this->lazyRequest('DELETE', self::URL_USER . $user->getUsername());
+            // @todo Report upstream
+            // The API docs state that we should be passing the username here. They're wrong: we need to pass the ID
+            $this->lazyRequest('DELETE', self::URL_USER . $user->getId());
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
@@ -278,6 +282,7 @@ final class SaikuClient
     /**
      * Returns folder containing entire repository
      *
+     * @todo Report upstream
      * Although the endpoint accepts a "path" parameter, using it always returns an empty response. From what I can tell
      * this is a bug in org.saiku.repository.JackRabbitRepositoryManager#getRepoObjects that stops returning repository
      * objects for a folder: folders are not processed because a conditional checks on whether it's a file first.
@@ -517,6 +522,7 @@ final class SaikuClient
         ];
 
         try {
+            // @todo Report upstream
             // The api docs indicate that we should be passing an id, but schemas do not have one. From the source it's
             // clear the name is expected.
             $response = $this->lazyRequest('POST', self::URL_SCHEMA . $schema->getName(), $options);
@@ -566,6 +572,7 @@ final class SaikuClient
         $this->validateSchema($schema);
 
         try {
+            // @todo Report upstream
             // The api docs indicate that we should be passing an id, but schemas do not have one. From the source it's
             // clear the name is expected.
             $this->lazyRequest('DELETE', self::URL_SCHEMA . $schema->getName());

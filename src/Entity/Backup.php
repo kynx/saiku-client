@@ -11,6 +11,7 @@ namespace Kynx\Saiku\Entity;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
+use Kynx\Saiku\Exception\BadBackupException;
 
 final class Backup
 {
@@ -49,7 +50,12 @@ final class Backup
             $backup = json_decode($backup, true);
         }
         if (is_array($backup)) {
-            $this->created = new DateTimeImmutable($backup['created']);
+            try {
+                $this->created = new DateTimeImmutable($backup['created']);
+            } catch (\Exception $e) {
+                throw new BadBackupException("Cannot parse created date");
+            }
+
             if (isset($backup['license'])) {
                 $this->license = new File($backup['license']);
             }
