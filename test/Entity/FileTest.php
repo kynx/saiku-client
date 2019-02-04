@@ -6,13 +6,13 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku\Entity;
+namespace KynxTest\Saiku\Client\Entity;
 
-use Kynx\Saiku\Entity\File;
+use Kynx\Saiku\Client\Entity\File;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass \Kynx\Saiku\Entity\File
+ * @coversDefaultClass \Kynx\Saiku\Client\Entity\File
  */
 class FileTest extends TestCase
 {

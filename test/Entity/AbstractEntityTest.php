@@ -6,13 +6,13 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku\Entity;
+namespace KynxTest\Saiku\Client\Entity;
 
-use Kynx\Saiku\Entity\AbstractEntity;
+use Kynx\Saiku\Client\Entity\AbstractEntity;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass \Kynx\Saiku\Entity\AbstractEntity
+ * @coversDefaultClass \Kynx\Saiku\Client\Entity\AbstractEntity
  */
 class AbstractEntityTest extends TestCase
 {

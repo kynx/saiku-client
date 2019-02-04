@@ -6,13 +6,13 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku\Entity;
+namespace KynxTest\Saiku\Client\Entity;
 
-use Kynx\Saiku\Entity\Datasource;
+use Kynx\Saiku\Client\Entity\Datasource;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass \Kynx\Saiku\Entity\Datasource
+ * @coversDefaultClass \Kynx\Saiku\Client\Entity\Datasource
  */
 class DatasourceTest extends TestCase
 {

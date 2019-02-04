@@ -6,7 +6,7 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Exception;
+namespace Kynx\Saiku\Client\Exception;
 
 use RuntimeException;
 

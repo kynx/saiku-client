@@ -6,30 +6,30 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku;
+namespace Kynx\Saiku\Client;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Cookie\CookieJarInterface;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\ServerException;
-use Kynx\Saiku\Entity\AbstractNode;
-use Kynx\Saiku\Entity\Acl;
-use Kynx\Saiku\Entity\Datasource;
-use Kynx\Saiku\Entity\File;
-use Kynx\Saiku\Entity\Folder;
-use Kynx\Saiku\Entity\License;
-use Kynx\Saiku\Entity\Schema;
-use Kynx\Saiku\Entity\User;
-use Kynx\Saiku\Exception\BadLoginException;
-use Kynx\Saiku\Exception\BadResponseException;
-use Kynx\Saiku\Exception\DatasourceException;
-use Kynx\Saiku\Exception\LicenseException;
-use Kynx\Saiku\Exception\ProxyException;
-use Kynx\Saiku\Exception\RepositoryException;
-use Kynx\Saiku\Exception\SaikuException;
-use Kynx\Saiku\Exception\SchemaException;
-use Kynx\Saiku\Exception\UserException;
+use Kynx\Saiku\Client\Entity\AbstractNode;
+use Kynx\Saiku\Client\Entity\Acl;
+use Kynx\Saiku\Client\Entity\Datasource;
+use Kynx\Saiku\Client\Entity\File;
+use Kynx\Saiku\Client\Entity\Folder;
+use Kynx\Saiku\Client\Entity\License;
+use Kynx\Saiku\Client\Entity\Schema;
+use Kynx\Saiku\Client\Entity\User;
+use Kynx\Saiku\Client\Exception\BadLoginException;
+use Kynx\Saiku\Client\Exception\BadResponseException;
+use Kynx\Saiku\Client\Exception\DatasourceException;
+use Kynx\Saiku\Client\Exception\LicenseException;
+use Kynx\Saiku\Client\Exception\ProxyException;
+use Kynx\Saiku\Client\Exception\RepositoryException;
+use Kynx\Saiku\Client\Exception\SaikuException;
+use Kynx\Saiku\Client\Exception\SchemaException;
+use Kynx\Saiku\Client\Exception\UserException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;

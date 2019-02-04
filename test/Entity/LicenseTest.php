@@ -6,15 +6,15 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku\Entity;
+namespace KynxTest\Saiku\Client\Entity;
 
 use DateTimeImmutable;
-use Kynx\Saiku\Exception\HydrationException;
-use Kynx\Saiku\Entity\License;
+use Kynx\Saiku\Client\Exception\HydrationException;
+use Kynx\Saiku\Client\Entity\License;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass \Kynx\Saiku\Entity\License
+ * @coversDefaultClass \Kynx\Saiku\Client\Entity\License
  */
 class LicenseTest extends TestCase
 {

@@ -6,7 +6,7 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku\Service;
+namespace KynxTest\Saiku\Client;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
@@ -15,11 +15,11 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
-use Kynx\Saiku\Exception\BadLoginException;
-use Kynx\Saiku\Exception\BadResponseException;
-use Kynx\Saiku\Exception\SaikuException;
-use Kynx\Saiku\Entity\User;
-use Kynx\Saiku\SaikuClient;
+use Kynx\Saiku\Client\Exception\BadLoginException;
+use Kynx\Saiku\Client\Exception\BadResponseException;
+use Kynx\Saiku\Client\Exception\SaikuException;
+use Kynx\Saiku\Client\Entity\User;
+use Kynx\Saiku\Client\SaikuClient;
 use PHPUnit\Framework\TestCase as TestCase;
 use Psr\Http\Message\ResponseInterface;
 

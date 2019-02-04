@@ -19,27 +19,22 @@
   ],
   "autoload": {
     "psr-4": {
-      "Kynx\\Saiku\\":"src/"
+      "Kynx\\Saiku\\Client\\":"src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "KynxTest\\Saiku\\":"test/"
+      "KynxTest\\Saiku\\Client\\":"test/"
     }
   },
   "require": {
     "php":">=7.1",
     "ext-json":"*",
-    "ext-zip": "*",
     "guzzlehttp/guzzle": "^6.3"
   },
   "require-dev": {
     "phpunit/phpunit": "^7.5",
-    "psr/container": "^1.0",
     "zendframework/zend-coding-standard": "^1.0"
-  },
-  "suggest": {
-    "psr/container": "Container implementation for factory-based configuration"
   },
   "config": {
     "sort-packages": true

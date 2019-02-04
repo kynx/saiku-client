@@ -6,7 +6,7 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Entity;
+namespace Kynx\Saiku\Client\Entity;
 
 abstract class AbstractEntity
 {

@@ -6,13 +6,13 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku\Entity;
+namespace KynxTest\Saiku\Client\Entity;
 
-use Kynx\Saiku\Entity\Acl;
+use Kynx\Saiku\Client\Entity\Acl;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass \Kynx\Saiku\Entity\Acl
+ * @coversDefaultClass \Kynx\Saiku\Client\Entity\Acl
  */
 class AclTest extends TestCase
 {

@@ -6,19 +6,25 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku;
+namespace KynxTest\Saiku\Client;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Cookie\SetCookie;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Stream;
-use Kynx\Saiku\Entity\Backup;
-use Kynx\Saiku\Entity\License;
-use Kynx\Saiku\Entity\User;
-use Kynx\Saiku\Exception\BadLoginException;
-use Kynx\Saiku\Exception\SaikuExceptionInterface;
-use Kynx\Saiku\Exception\UserException;
-use Kynx\Saiku\SaikuClient;
-use Kynx\Saiku\SaikuRestore;
+use Kynx\Saiku\Backup\Entity\Backup;
+use Kynx\Saiku\Backup\SaikuRestore;
+use Kynx\Saiku\Client\Entity\License;
+use Kynx\Saiku\Client\Entity\User;
+use Kynx\Saiku\Client\Exception\BadLoginException;
+use Kynx\Saiku\Client\Exception\LicenseException;
+use Kynx\Saiku\Client\Exception\SaikuException;
+use Kynx\Saiku\Client\Exception\SaikuExceptionInterface;
+use Kynx\Saiku\Client\Exception\UserException;
+use Kynx\Saiku\Client\SaikuClient;
 use PHPUnit\Framework\TestCase as TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -31,8 +37,6 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class SaikuClientIntegrationTest extends TestCase
 {
-    use IntegrationTrait;
-
     private const ADMIN_ID = 1;
     private const USER_ID = 2;
     private const INVALID_USER_ID = 9999;
@@ -47,6 +51,11 @@ final class SaikuClientIntegrationTest extends TestCase
      * @var SaikuClient
      */
     private $saiku;
+    /**
+     * @var CookieJar
+     */
+    private $cookieJar;
+    private $history = [];
 
     protected function setUp()
     {
@@ -237,6 +246,65 @@ final class SaikuClientIntegrationTest extends TestCase
         } catch (SaikuExceptionInterface $e) {
             $this->markTestSkipped(sprintf("Error restoring repository: %s", $e->getMessage()));
         }
+    }
+    private function getSaiku()
+    {
+        $this->cookieJar = new CookieJar();
+        $history = Middleware::history($this->history);
+        $stack = HandlerStack::create();
+        $stack->push($history);
+
+        $options = [
+            'base_uri' => $GLOBALS['SAIKU_URL'],
+            'handler' => $stack,
+            'cookies' => $this->cookieJar,
+        ];
+
+        $client = new Client($options);
+        $saiku = new SaikuClient($client);
+        $saiku->setUsername($GLOBALS['SAIKU_USERNAME'])
+            ->setPassword($GLOBALS['SAIKU_PASSWORD']);
+
+        return $saiku;
+    }
+
+    private function isConfigured()
+    {
+        return isset($GLOBALS['SAIKU_URL']) && isset($GLOBALS['SAIKU_USERNAME']) && isset($GLOBALS['SAIKU_PASSWORD']);
+    }
+
+    private function checkLicense(SaikuClient $client): bool
+    {
+        try {
+            $client->getLicense();
+        } catch (LicenseException $e) {
+            $this->loadLicense($client);
+        } catch (SaikuException $e) {
+            return false;
+        }
+        return true;
+    }
+
+    private function loadLicense(SaikuClient $client): void
+    {
+        $file = $this->getLicenseFile();
+        $fh = fopen($file, 'r');
+        if (! $fh) {
+            $this->markTestSkipped(sprintf("Couldn't open '%s' for reading", $file));
+        }
+        $stream = new Stream($fh);
+        try {
+            $client->setLicense($stream);
+        } catch (SaikuExceptionInterface $e) {
+            $this->markTestSkipped(sprintf("Error loading license from '%s: %s", $file, $e->getMessage()));
+        } finally {
+            fclose($fh);
+        }
+    }
+
+    private function getLicenseFile()
+    {
+        return __DIR__ . '/../license.lic';
     }
 
     private function getUser($username): ?User

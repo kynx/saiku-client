@@ -6,13 +6,13 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku\Entity;
+namespace KynxTest\Saiku\Client\Entity;
 
-use Kynx\Saiku\Entity\Schema;
+use Kynx\Saiku\Client\Entity\Schema;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass \Kynx\Saiku\Entity\Schema
+ * @coversDefaultClass \Kynx\Saiku\Client\Entity\Schema
  */
 class SchemaTest extends TestCase
 {

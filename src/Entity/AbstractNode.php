@@ -6,9 +6,9 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Entity;
+namespace Kynx\Saiku\Client\Entity;
 
-use Kynx\Saiku\Exception\HydrationException;
+use Kynx\Saiku\Client\Exception\HydrationException;
 
 abstract class AbstractNode extends AbstractEntity
 {

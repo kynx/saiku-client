@@ -6,7 +6,7 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Entity;
+namespace Kynx\Saiku\Client\Entity;
 
 /**
  * In the UI datasources are displayed in two modes: "simple" and "advanced". When an advanced datasource is saved,

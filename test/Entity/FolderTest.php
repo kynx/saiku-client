@@ -6,15 +6,15 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku\Entity;
+namespace KynxTest\Saiku\Client\Entity;
 
-use Kynx\Saiku\Entity\AbstractNode;
-use Kynx\Saiku\Entity\File;
-use Kynx\Saiku\Entity\Folder;
+use Kynx\Saiku\Client\Entity\AbstractNode;
+use Kynx\Saiku\Client\Entity\File;
+use Kynx\Saiku\Client\Entity\Folder;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass \Kynx\Saiku\Entity\Folder
+ * @coversDefaultClass \Kynx\Saiku\Client\Entity\Folder
  */
 class FolderTest extends TestCase
 {

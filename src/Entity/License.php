@@ -6,13 +6,13 @@
  */
 declare(strict_types=1);
 
-namespace Kynx\Saiku\Entity;
+namespace Kynx\Saiku\Client\Entity;
 
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
-use Kynx\Saiku\Exception\HydrationException;
+use Kynx\Saiku\Client\Exception\HydrationException;
 
 final class License extends AbstractEntity
 {
