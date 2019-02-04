@@ -6,18 +6,19 @@
  */
 declare(strict_types=1);
 
-namespace KynxTest\Saiku\Service;
+namespace KynxTest\Saiku;
 
-use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Cookie\SetCookie;
 use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Stream;
+use Kynx\Saiku\Entity\Backup;
+use Kynx\Saiku\Entity\License;
+use Kynx\Saiku\Entity\User;
 use Kynx\Saiku\Exception\BadLoginException;
 use Kynx\Saiku\Exception\SaikuExceptionInterface;
 use Kynx\Saiku\Exception\UserException;
-use Kynx\Saiku\Entity\License;
-use Kynx\Saiku\Entity\User;
 use Kynx\Saiku\SaikuClient;
+use Kynx\Saiku\SaikuRestore;
 use PHPUnit\Framework\TestCase as TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -26,6 +27,7 @@ use Psr\Http\Message\ResponseInterface;
  * These tests WILL mess with your saiku repository and users. Use against a development instance!
  *
  * @group integration
+ * @coversNothing
  */
 final class SaikuClientIntegrationTest extends TestCase
 {
@@ -45,11 +47,6 @@ final class SaikuClientIntegrationTest extends TestCase
      * @var SaikuClient
      */
     private $saiku;
-    /**
-     * @var CookieJar
-     */
-    private $cookieJar;
-    private $history = [];
 
     protected function setUp()
     {
@@ -65,42 +62,6 @@ final class SaikuClientIntegrationTest extends TestCase
 
         $this->loadRepository();
         $this->history = [];
-    }
-
-    public function tearDown()
-    {
-        parent::tearDown();
-
-        if ($this->dump) {
-            printf("%s:\n", $this->getName());
-            foreach ($this->history as $transaction) {
-                /* @var RequestInterface $request */
-                $request = $transaction['request'];
-                $body = (string) $request->getBody();
-                printf(
-                    "%s %s\n%s\n",
-                    $request->getMethod(),
-                    $request->getUri(),
-                    $body ? $body . "\n" : ""
-                );
-
-
-                if (isset($transaction['response'])) {
-                    /* @var ResponseInterface $response */
-                    $response = $transaction['response'];
-                    $headers = [];
-                    foreach ($response->getHeaders() as $name => $header) {
-                        $headers[] = $name . ': ' . implode(", ", $header);
-                    }
-
-                    printf("Status: %s\n", $response->getStatusCode());
-                    printf("%s\n\n%s\n\n", join("\n", $headers), (string) $response->getBody());
-                } elseif (isset($transaction['error'])) {
-                    printf("Error: %s\n\n", $transaction['error']);
-                }
-            }
-        }
-
     }
 
     public function testLoginSetsCookie()
@@ -140,6 +101,18 @@ final class SaikuClientIntegrationTest extends TestCase
         $this->assertEquals(200, $actual->getStatusCode());
     }
 
+    public function testGetUsersReturnsUsers()
+    {
+        $actual = $this->saiku->getUsers();
+        $this->assertCount(2, $actual);
+        foreach ($actual as $user) {
+            $this->assertInstanceOf(User::class, $user);
+            $this->assertNotEmpty($user->getId());
+            $this->assertNotEmpty($user->getUsername());
+            $this->assertRegExp('|\$2a?\$\d\d\$[./0-9A-Za-z]{53}|', $user->getPassword());
+        }
+    }
+
     public function testGetUserReturnsUser()
     {
         $actual = $this->saiku->getUser(self::ADMIN_ID);
@@ -160,15 +133,7 @@ final class SaikuClientIntegrationTest extends TestCase
             ->setPassword('blahblahblah')
             ->setEmail('foo@example.com');
 
-        try {
-            $actual = $this->saiku->createUser($user);
-        } finally {
-            // if this fails subsequent runs will also fail until you restart docker
-            if ($actual && $actual->getId()) {
-                // @fixme this is throwing a 405
-                $this->saiku->deleteUser($user);
-            }
-        }
+        $actual = $this->saiku->createUser($user);
         $this->assertNotEmpty($actual->getId());
         $this->assertEquals($user->getUsername(), $actual->getUsername());
         $this->assertEquals($user->getEmail(), $actual->getEmail());
@@ -183,14 +148,7 @@ final class SaikuClientIntegrationTest extends TestCase
         $this->assertNotEquals('another@example.com', $oldEmail);
         $user->setEmail('another@example.com');
 
-        try {
-            $actual = $this->saiku->updateUser($user);
-        } finally {
-            // if the following fails subsequent runs will also fail until you restart docker
-            $user->setEmail($oldEmail);
-            $this->saiku->updateUser($user);
-        }
-
+        $actual = $this->saiku->updateUser($user);
         $this->assertEquals(self::ADMIN_ID, $actual->getId());
         $this->assertEquals('another@example.com', $actual->getEmail());
 
@@ -199,16 +157,7 @@ final class SaikuClientIntegrationTest extends TestCase
         $this->assertEquals($oldPassword, $actual->getPassword());
     }
 
-    public function testUpdateNoIdThrowsException()
-    {
-        $this->expectException(UserException::class);
-        $user = new User();
-        $user->setUsername('foo@test')
-            ->setPassword('foo');
-        $this->saiku->updateUser($user);
-    }
-
-    public function testUpdateNonexistentUserThrowsException()
+    public function testUpdateUserNonexistentUserThrowsException()
     {
         $this->expectException(UserException::class);
         $user = new User();
@@ -230,6 +179,26 @@ final class SaikuClientIntegrationTest extends TestCase
         $this->assertStringStartsWith('$2a$', $actual->getPassword());
         $this->assertNotEquals($oldPassword, $actual->getPassword());
     }
+
+    public function testDeleteUserDeletesUser()
+    {
+        $user = new User();
+        $user->setId(self::USER_ID);
+        $this->saiku->deleteUser($user);
+        $actual = $this->saiku->getUser(self::USER_ID);
+        $this->assertNull($actual);
+    }
+
+    /*
+    public function testDeleteNonExistentThrowsNoWobblies()
+    {
+        $user = new User();
+        $user->setId(self::INVALID_USER_ID);
+        $this->saiku->deleteUser($user);
+        $actual = $this->saiku->getUser(self::INVALID_USER_ID);
+        $this->assertNull($actual);
+    }
+    */
 
     public function testGetLicenseReturnsLicense()
     {
@@ -259,18 +228,52 @@ final class SaikuClientIntegrationTest extends TestCase
     private function loadRepository()
     {
         if (! $this->checkLicense($this->saiku)) {
-            $this->markTestSkipped(sprintf("Error checking license: %s", $e->getMessage()));
+            $this->markTestSkipped("Error checking license");
         }
 
-        $fh = fopen('zip://' . __DIR__ . '/repo.zip#backup.xml', 'r');
-        $stream = new Stream($fh);
+        $backup = new Backup(file_get_contents(__DIR__ . '/asset/backup.json'));
+        $restore = new SaikuRestore($this->saiku);
         try {
-            $this->saiku->restore($stream);
+            $restore->restore($backup);
             $this->saiku->logout();
         } catch (SaikuExceptionInterface $e) {
             $this->markTestSkipped(sprintf("Error restoring repository: %s", $e->getMessage()));
-        } finally {
-            fclose($fh);
         }
+    }
+
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        if ($this->dump) {
+            printf("%s:\n", $this->getName());
+            foreach ($this->history as $transaction) {
+                /* @var RequestInterface $request */
+                $request = $transaction['request'];
+                $body = (string) $request->getBody();
+                printf(
+                    "%s %s\n%s\n",
+                    $request->getMethod(),
+                    $request->getUri(),
+                    $body ? $body . "\n" : ""
+                );
+
+
+                if (isset($transaction['response'])) {
+                    /* @var ResponseInterface $response */
+                    $response = $transaction['response'];
+                    $headers = [];
+                    foreach ($response->getHeaders() as $name => $header) {
+                        $headers[] = $name . ': ' . implode(", ", $header);
+                    }
+
+                    printf("Status: %s\n", $response->getStatusCode());
+                    printf("%s\n\n%s\n\n", join("\n", $headers), (string) $response->getBody());
+                } elseif (isset($transaction['error'])) {
+                    printf("Error: %s\n\n", $transaction['error']);
+                }
+            }
+        }
+
     }
 }
