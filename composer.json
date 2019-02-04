@@ -33,6 +33,7 @@
     "guzzlehttp/guzzle": "^6.3"
   },
   "require-dev": {
+    "kynx/saiku-backup": "dev-master",
     "phpunit/phpunit": "^7.5",
     "zendframework/zend-coding-standard": "^1.0"
   },
@@ -49,5 +50,11 @@
     "test": "phpunit --colors=always",
     "test-coverage": "phpunit --colors=always --coverage-clover clover.xml",
     "upload-coverage": "coveralls -v"
-  }
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "git@github.com:kynx/saiku-backup.git"
+    }
+  ]
 }
