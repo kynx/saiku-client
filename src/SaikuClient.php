@@ -67,6 +67,17 @@ final class SaikuClient
     }
 
     /**
+     * Returns new instance with given cookie jar injected
+     */
+    public function withCookieJar(CookieJarInterface $cookieJar): SaikuClient
+    {
+        $options = $this->client->getConfig();
+        $options['cookies'] = $cookieJar;
+        $class = get_class($this->client);
+        return new self(new $class($options));
+    }
+
+    /**
      * Sets Saiku username to use for connection
      */
     public function setUsername(string $username): SaikuClient

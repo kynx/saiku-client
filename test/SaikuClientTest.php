@@ -10,6 +10,7 @@ namespace KynxTest\Saiku\Client;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Cookie\CookieJarInterface;
 use GuzzleHttp\Cookie\SetCookie;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -23,6 +24,9 @@ use Kynx\Saiku\Client\SaikuClient;
 use PHPUnit\Framework\TestCase as TestCase;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * @coversDefaultClass \Kynx\Saiku\Client\SaikuClient
+ */
 class SaikuClientTest extends TestCase
 {
     /**
@@ -78,6 +82,17 @@ class SaikuClientTest extends TestCase
         ];
         $client = new Client($options);
         new SaikuClient($client);
+    }
+
+    /**
+     * @covers ::withCookieJar
+     */
+    public function testWithCookieJarReturnInstance()
+    {
+        $cookieJar = $this->prophesize(CookieJarInterface::class);
+        $actual = $this->saiku->withCookieJar($cookieJar->reveal());
+        $this->assertInstanceOf(SaikuClient::class, $actual);
+        $this->assertNotEquals($this->saiku, $actual);
     }
 
     public function testLoginNoUsernameThrowsException()
