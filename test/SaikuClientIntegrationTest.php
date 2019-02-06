@@ -17,10 +17,15 @@ use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Stream;
 use Kynx\Saiku\Backup\Entity\Backup;
 use Kynx\Saiku\Backup\SaikuRestore;
+use Kynx\Saiku\Client\Entity\AbstractEntity;
+use Kynx\Saiku\Client\Entity\AbstractNode;
+use Kynx\Saiku\Client\Entity\File;
+use Kynx\Saiku\Client\Entity\Folder;
 use Kynx\Saiku\Client\Entity\License;
 use Kynx\Saiku\Client\Entity\User;
 use Kynx\Saiku\Client\Exception\BadLoginException;
 use Kynx\Saiku\Client\Exception\LicenseException;
+use Kynx\Saiku\Client\Exception\NotFoundException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Exception\SaikuExceptionInterface;
 use Kynx\Saiku\Client\Exception\UserException;
@@ -191,10 +196,10 @@ final class SaikuClientIntegrationTest extends TestCase
 
     public function testDeleteUserDeletesUser()
     {
-        $user = new User();
-        $user->setId(self::USER_ID);
+        $user = $this->getUser("smith");
+        $this->assertInstanceOf(User::class, $user);
         $this->saiku->deleteUser($user);
-        $actual = $this->saiku->getUser(self::USER_ID);
+        $actual = $this->getUser("smith");
         $this->assertNull($actual);
     }
 
@@ -205,6 +210,99 @@ final class SaikuClientIntegrationTest extends TestCase
         $this->saiku->deleteUser($user);
         $actual = $this->saiku->getUser(self::INVALID_USER_ID);
         $this->assertNull($actual);
+    }
+
+    public function testGetRepositoryReturnsFolder()
+    {
+        $repo = $this->saiku->getRespository();
+        $actual = array_map(function (AbstractNode $node) {
+            return $node->getName();
+        }, $repo->getRepoObjects());
+        $expected = ['datasources', 'etc', 'homes'];
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function testGetRepositoryReturnsContent()
+    {
+        $repo = $this->saiku->getRespository(true);
+        $flattened = iterator_to_array($this->flattenRepo($repo));
+        $file = '/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku';
+        $this->assertArrayHasKey($file, $flattened);
+        $actual = $flattened[$file];
+        /* @var File $actual */
+        $this->assertNotEmpty($actual->getContent());
+    }
+
+    public function testGetRepositoryFiltersTypes()
+    {
+        $repo = $this->saiku->getRespository(false, [File::FILETYPE_SCHEMA]);
+        $flattened = iterator_to_array($this->flattenRepo($repo));
+        $file = '/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku';
+        $this->assertArrayNotHasKey($file, $flattened);
+        $file = '/datasources/foodmart4.xml';
+        $this->assertArrayHasKey($file, $flattened);
+    }
+
+    public function testGetResourceReturnsContent()
+    {
+        $resource = $this->saiku->getResource('/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku');
+        $this->assertIsString($resource);
+        $actual = json_decode($resource, true);
+        $this->assertIsArray($actual);
+    }
+
+    public function testGetNonExistentResourceThrowsNotFoundException()
+    {
+        $this->expectException(NotFoundException::class);
+        $this->saiku->getResource('/homes/home:admin/nothere.saiku');
+    }
+
+    public function testStoreResourceStoresFile()
+    {
+        $file = new File();
+        $file->setFileType($file::FILETYPE_REPORT);
+        $file->setPath('/homes/home:smith/foo.saiku');
+        $file->setName('foo.saiku');
+        $file->setAcl(['ROLE_USER']);
+        $file->setContent('{"foo":"bar"}');
+
+        $this->saiku->storeResource($file);
+        $actual = $this->saiku->getResource('/homes/home:smith/foo.saiku');
+        $this->assertEquals('{"foo":"bar"}', $actual);
+    }
+
+    public function testStoreResourceStoresFolder()
+    {
+        $folder = new Folder();
+        $folder->setPath('/homes/home:smith/foo');
+        $folder->setName('foo');
+        $folder->setAcl(['ROLE_USER']);
+
+        $this->saiku->storeResource($folder);
+        $repo = $this->saiku->getRespository();
+        $flattened = iterator_to_array($this->flattenRepo($repo));
+        $this->assertArrayHasKey('/homes/home:smith/foo', $flattened);
+    }
+
+    public function testDeleteResourceDeletes()
+    {
+        $path = '/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku';
+        $file = new File();
+        $file->setPath($path);
+
+        $this->saiku->deleteResource($file);
+        $repo = $this->saiku->getRespository();
+        $flattened = iterator_to_array($this->flattenRepo($repo));
+        $this->assertArrayNotHasKey($path, $flattened);
+    }
+
+    public function testDeleteNonExistentResourceDoesNotThrowWobblies()
+    {
+        $path = '/homes/home:admin/nothere.saiku';
+        $file = new File();
+        $file->setPath($path);
+        $this->saiku->deleteResource($file);
+        $this->assertTrue(true);
     }
 
     public function testGetLicenseReturnsLicense()
@@ -232,6 +330,19 @@ final class SaikuClientIntegrationTest extends TestCase
         return $cookie;
     }
 
+    private function flattenRepo(Folder $folder)
+    {
+        foreach ($folder->getRepoObjects() as $object) {
+            yield $object->getPath() => $object;
+
+            if ($object instanceof Folder) {
+                foreach ($this->flattenRepo($object) as $path => $child) {
+                    yield $path => $child;
+                }
+            }
+        }
+    }
+
     private function loadRepository()
     {
         if (! $this->checkLicense($this->saiku)) {
@@ -247,6 +358,7 @@ final class SaikuClientIntegrationTest extends TestCase
             $this->markTestSkipped(sprintf("Error restoring repository: %s", $e->getMessage()));
         }
     }
+
     private function getSaiku()
     {
         $this->cookieJar = new CookieJar();

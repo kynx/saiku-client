@@ -25,6 +25,7 @@ use Kynx\Saiku\Client\Exception\BadLoginException;
 use Kynx\Saiku\Client\Exception\BadResponseException;
 use Kynx\Saiku\Client\Exception\DatasourceException;
 use Kynx\Saiku\Client\Exception\LicenseException;
+use Kynx\Saiku\Client\Exception\NotFoundException;
 use Kynx\Saiku\Client\Exception\ProxyException;
 use Kynx\Saiku\Client\Exception\RepositoryException;
 use Kynx\Saiku\Client\Exception\SaikuException;
@@ -347,6 +348,13 @@ final class SaikuClient
         try {
             $query = ['file' => $path];
             $response = $this->lazyRequest('GET', self::URL_REPO_RESOURCE, ['query' => $query]);
+        } catch (ServerException $e) {
+            // @todo Report upstream
+            // Saiku throws a 500 error when the resource does not exist :(
+            if (strstr((string) $e->getResponse()->getBody(), 'java.util.NoSuchElementException')) {
+                throw new NotFoundException(sprintf("Resource '%s' does not exist", $path), 404, $e);
+            }
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
