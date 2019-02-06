@@ -14,6 +14,7 @@ use GuzzleHttp\Cookie\CookieJarInterface;
 use GuzzleHttp\Cookie\SetCookie;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
 use Kynx\Saiku\Client\Exception\BadLoginException;
@@ -22,6 +23,7 @@ use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Entity\User;
 use Kynx\Saiku\Client\SaikuClient;
 use PHPUnit\Framework\TestCase as TestCase;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -46,15 +48,23 @@ class SaikuClientTest extends TestCase
      * @var CookieJar
      */
     private $cookieJar;
+    /**
+     * @var array
+     */
+    private $history;
 
     private $sessionId = 'DF76204934E41D3E3A930508E57B740D';
 
     protected function setUp()
     {
+        $this->history = [];
+        $history = Middleware::history($this->history);
         $this->handler = HandlerStack::create();
+        $this->handler->push($history);
+
         $this->cookieJar = new CookieJar();
         $options = [
-            'base_uri' => 'http://localhost:9090/saiku',
+            'base_uri' => 'http://localhost:9090/saiku/',
             'handler' => $this->handler,
             'cookies' => $this->cookieJar,
         ];
@@ -191,6 +201,23 @@ class SaikuClientTest extends TestCase
         $this->assertInstanceOf(ResponseInterface::class, $actual);
         $this->assertEquals(200, $actual->getStatusCode());
         $this->assertEquals(json_decode($users, true), json_decode((string) $actual->getBody(), true));
+    }
+
+    /**
+     * @covers ::proxy
+     */
+    public function testProxyStripsLeadingSlashFromPath()
+    {
+        $this->cookieJar->setCookie($this->getSessionCookie());
+        $this->mockResponses([
+            new Response(200, ['Content-Type' => 'application/json'], '[]')
+        ]);
+        $this->saiku->proxy(new ServerRequest('GET', '/foo'));
+        $this->assertCount(1, $this->history);
+        /* @var RequestInterface $request */
+        $request = $this->history[0]['request'];
+        $uri = $request->getUri();
+        $this->assertEquals('/saiku/foo', $uri->getPath());
     }
 
     public function testProxyExpiredCookieReturnsResponse()
