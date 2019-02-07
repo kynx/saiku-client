@@ -12,7 +12,7 @@ use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
-use Kynx\Saiku\Client\Exception\HydrationException;
+use Kynx\Saiku\Client\Exception\EntityException;
 
 final class License extends AbstractEntity
 {
@@ -209,7 +209,7 @@ final class License extends AbstractEntity
                     ? new DateTimeImmutable($properties['expiration'], new DateTimeZone('UTC'))
                     : null;
             } catch (Exception $e) {
-                throw new HydrationException(sprintf(
+                throw new EntityException(sprintf(
                     "Could not parse expiration '%s'",
                     $properties['expiration']
                 ), $e->getCode(), $e);

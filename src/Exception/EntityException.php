@@ -10,6 +10,6 @@ namespace Kynx\Saiku\Client\Exception;
 
 use DomainException;
 
-final class HydrationException extends DomainException implements SaikuExceptionInterface
+final class EntityException extends DomainException implements SaikuExceptionInterface
 {
 }

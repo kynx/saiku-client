@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace KynxTest\Saiku\Client\Entity;
 
 use DateTimeImmutable;
-use Kynx\Saiku\Client\Exception\HydrationException;
+use Kynx\Saiku\Client\Exception\EntityException;
 use Kynx\Saiku\Client\Entity\License;
 use PHPUnit\Framework\TestCase;
 
@@ -53,7 +53,7 @@ class LicenseTest extends TestCase
      */
     public function testHydrationBadExpirationThrowsHydrationException()
     {
-        $this->expectException(HydrationException::class);
+        $this->expectException(EntityException::class);
         $json = '{"expiration":"blah"}';
         new License($json);
     }

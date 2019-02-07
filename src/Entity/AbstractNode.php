@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Entity;
 
-use Kynx\Saiku\Client\Exception\HydrationException;
+use Kynx\Saiku\Client\Exception\EntityException;
 
 abstract class AbstractNode extends AbstractEntity
 {
@@ -56,9 +56,9 @@ abstract class AbstractNode extends AbstractEntity
             } elseif ($type == self::TYPE_FOLDER) {
                 return new Folder($properties);
             }
-            throw new HydrationException(sprintf("Unknown object type '%s'", $type));
+            throw new EntityException(sprintf("Unknown object type '%s'", $type));
         }
-        throw new HydrationException(sprintf("Cannot create object from %s", gettype($properties)));
+        throw new EntityException(sprintf("Cannot create object from %s", gettype($properties)));
     }
 
     /**

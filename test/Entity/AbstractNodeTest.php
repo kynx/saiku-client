@@ -11,7 +11,7 @@ namespace KynxTest\Saiku\Client\Entity;
 use Kynx\Saiku\Client\Entity\AbstractNode;
 use Kynx\Saiku\Client\Entity\File;
 use Kynx\Saiku\Client\Entity\Folder;
-use Kynx\Saiku\Client\Exception\HydrationException;
+use Kynx\Saiku\Client\Exception\EntityException;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -42,7 +42,7 @@ class AbstractNodeTest extends TestCase
      */
     public function testGetInstanceInvalidTypeThrowsHydrationException()
     {
-        $this->expectException(HydrationException::class);
+        $this->expectException(EntityException::class);
         AbstractNode::getInstance(666);
     }
 
@@ -51,7 +51,7 @@ class AbstractNodeTest extends TestCase
      */
     public function testGetInstanceUnknownTypeThrowsHydrationException()
     {
-        $this->expectException(HydrationException::class);
+        $this->expectException(EntityException::class);
         AbstractNode::getInstance('{"type":"foo"}');
     }
 
