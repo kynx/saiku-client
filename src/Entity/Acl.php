@@ -8,11 +8,18 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Entity;
 
+use Kynx\Saiku\Client\Exception\EntityException;
+
 final class Acl extends AbstractEntity
 {
     const TYPE_PUBLIC = 'PUBLIC';
     const TYPE_PRIVATE = 'PRIVATE';
     const TYPE_SECURED = 'SECURED';
+
+    const METHOD_NONE = 'NONE';
+    const METHOD_READ = 'READ';
+    const METHOD_WRITE = 'WRITE';
+    const METHOD_GRANT = 'GRANT';
 
     /**
      * @var string
@@ -31,90 +38,98 @@ final class Acl extends AbstractEntity
      */
     protected $users;
 
-    /**
-     * @return string
-     */
     public function getOwner(): string
     {
         return $this->owner;
     }
 
-    /**
-     * @param string $owner
-     *
-     * @return Acl
-     */
     public function setOwner(string $owner): Acl
     {
         $this->owner = $owner;
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getType(): string
     {
         return $this->type;
     }
 
-    /**
-     * @param string $type
-     *
-     * @return Acl
-     */
     public function setType(string $type): Acl
     {
+        $valid = [
+            self::TYPE_PUBLIC,
+            self::TYPE_PRIVATE,
+            self::TYPE_SECURED,
+        ];
+        if (! in_array($type, $valid)) {
+            throw new EntityException(sprintf(
+                "Invalid type '%s'. Valid types are %s",
+                $type,
+                join(', ', $valid)
+            ));
+        }
         $this->type = $type;
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getRoles(): array
     {
         return $this->roles;
     }
 
-    /**
-     * @param array $roles
-     *
-     * @return Acl
-     */
-    public function setRoles(array $roles): Acl
+    public function addRole(string $role, array $methods): Acl
     {
-        $this->roles = $roles;
+        $this->validateMethods($methods);
+
+        $this->roles[$role] = $methods;
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function getUsers(): ?array
     {
         return $this->users;
     }
 
-    /**
-     * @param array $users
-     *
-     * @return Acl
-     */
-    public function setUsers(array $users): Acl
+    public function addUser(string $user, array $methods): Acl
     {
-        $this->users = $users;
+        $this->validateMethods($methods);
+
+        if (! is_array($this->users)) {
+            $this->users = [];
+        }
+        $this->users[$user] = $methods;
         return $this;
     }
 
     protected function hydrate(array $properties): void
     {
         if (empty($properties['users'])) {
+            // @todo Report upstream
             // ERROR [JackRabbitRepositoryManager] Could not read ACL blob
             // com.fasterxml.jackson.databind.JsonMappingException: Can not deserialize instance of java.util.LinkedHashMap out of START_ARRAY token
             // at [Source: {"owner":"admin","type":"SECURED","roles":{"ROLE_USER":["READ"]},"users":[]}; line: 1, column: 65] (through reference chain: org.saiku.repository.AclEntry["users"])
+            //
+            // that json is exactly what saiku sends us :(
             unset($properties['users']);
         }
         parent::hydrate($properties);
+    }
+
+    private function validateMethods(array $methods): void
+    {
+        $valid = [
+            self::METHOD_NONE,
+            self::METHOD_READ,
+            self::METHOD_WRITE,
+            self::METHOD_GRANT
+        ];
+        $invalid = array_diff($methods, $valid);
+        if (count($invalid)) {
+            throw new EntityException(sprintf(
+                "Invalid method(s) %s. Valid methods are %s",
+                join(', ', $methods),
+                join(', ', $valid)
+            ));
+        }
     }
 }
