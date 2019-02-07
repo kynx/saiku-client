@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Entity;
 
+use Kynx\Saiku\Client\Exception\EntityException;
+
 final class Schema extends AbstractEntity
 {
     /**
@@ -42,6 +44,10 @@ final class Schema extends AbstractEntity
      */
     public function setName(string $name): Schema
     {
+        if ($this->hasXmlExtension($name)) {
+            throw new EntityException(sprintf("Name '%s' must not have an .xml extension", $name));
+        }
+
         $this->name = $name;
         return $this;
     }
@@ -105,12 +111,15 @@ final class Schema extends AbstractEntity
 
     protected function hydrate(array $properties): void
     {
-        if (isset($properties['name']) && pathinfo($properties['name'], PATHINFO_EXTENSION) == 'xml') {
+        if (isset($properties['name']) && $this->hasXmlExtension($properties['name'])) {
             // the name saiku returns includes the ".xml" extension, which screws up saving it again
             $properties['name'] = pathinfo($properties['name'], PATHINFO_FILENAME);
         }
         parent::hydrate($properties);
     }
 
-
+    private function hasXmlExtension(string $name): bool
+    {
+        return pathinfo($name, PATHINFO_EXTENSION) == 'xml';
+    }
 }

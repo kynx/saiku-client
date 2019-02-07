@@ -24,6 +24,7 @@ use Kynx\Saiku\Client\Entity\User;
 use Kynx\Saiku\Client\Exception\BadLoginException;
 use Kynx\Saiku\Client\Exception\BadResponseException;
 use Kynx\Saiku\Client\Exception\DatasourceException;
+use Kynx\Saiku\Client\Exception\EntityException;
 use Kynx\Saiku\Client\Exception\LicenseException;
 use Kynx\Saiku\Client\Exception\NotFoundException;
 use Kynx\Saiku\Client\Exception\ProxyException;
@@ -403,6 +404,8 @@ final class SaikuClient
         try {
             $response = $this->lazyRequest('GET', self::URL_REPO_ACL, ['query' => $query]);
         } catch (GuzzleException $e) {
+            // @todo Report upstream
+            // non-existent paths throw 500 with "You dont have permission to retrieve ACL for file: /homes/home:admin/nothere.saiku"
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
 
@@ -426,6 +429,8 @@ final class SaikuClient
         try {
             $this->lazyRequest('POST', self::URL_REPO_ACL, ['form_params' => $params]);
         } catch (GuzzleException $e) {
+            // @todo Report upstream
+            // this doesn't appear to throw _any_ exceptions if the Acl is malformed!
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
     }
@@ -452,6 +457,8 @@ final class SaikuClient
 
     public function createDatasource(Datasource $datasource): Datasource
     {
+        $this->validateDatasource($datasource);
+
         $options = [
             'json' => $datasource->toArray(),
         ];
@@ -471,8 +478,10 @@ final class SaikuClient
 
     public function updateDatasource(Datasource $datasource): Datasource
     {
+        $this->validateDatasource($datasource);
+
         if (! $datasource->getId()) {
-            throw new DatasourceException("Datasource must have an id");
+            throw new EntityException("Datasource must have an id");
         }
 
         $options = [
@@ -495,7 +504,7 @@ final class SaikuClient
     public function deleteDatasource(Datasource $datasource): void
     {
         if (! $datasource->getId()) {
-            throw new DatasourceException("Datasource must have an id");
+            throw new EntityException("Datasource must have an id");
         }
 
         try {
@@ -671,16 +680,17 @@ final class SaikuClient
         return $response;
     }
 
+    private function validateDatasource(Datasource $datasource)
+    {
+        if (! ($datasource->getAdvanced() || $datasource->getConnectionType())) {
+            throw new EntityException("Datasource must contain a connection type or be advanced");
+        }
+    }
+
     private function validateSchema(Schema $schema)
     {
         if (! $schema->getName()) {
-            throw new SchemaException("Schema must have a name");
-        }
-        if (pathinfo($schema->getName(), PATHINFO_EXTENSION)) {
-            throw new SchemaException(sprintf(
-                "Schema names should not include an extension; '%s' found",
-                pathinfo($schema->getName(), PATHINFO_EXTENSION)
-            ));
+            throw new EntityException("Schema must have a name");
         }
     }
 
