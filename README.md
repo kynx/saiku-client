@@ -15,7 +15,7 @@ The integration tests are not run by default: they need a working Saiku server. 
 **will trash** any existing repository on the server. **Do not** run them against production - or any other Saiku you
 care about!
 
-The safest way to run the tests is using [buggtb/saikuce]'s docker image:
+The safest way to run the tests is using the [kynx/saikuce] docker image:
 
 ```
 docker pull kynx/saikuce
@@ -39,7 +39,7 @@ vendor/bin/phpunit --group integration
 
 
 [Saiku]: https://www.meteorite.bi/products/saiku
-[buggtb/saikuce]: https://hub.docker.com/r/buggtb/saikuce
+[kynx/saikuce]: https://hub.docker.com/r/kynx/saikuce
 [evaluation license]: https://licensing.meteorite.bi
 [Saiku User Group]: https://groups.google.com/a/saiku.meteorite.bi/forum/#!forum/user
 [phpunit.xml.dist]: ./phpunit.xml.dist
