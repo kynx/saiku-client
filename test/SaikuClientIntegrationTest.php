@@ -17,8 +17,9 @@ use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Stream;
 use Kynx\Saiku\Backup\Entity\Backup;
 use Kynx\Saiku\Backup\SaikuRestore;
-use Kynx\Saiku\Client\Entity\AbstractEntity;
 use Kynx\Saiku\Client\Entity\AbstractNode;
+use Kynx\Saiku\Client\Entity\Acl;
+use Kynx\Saiku\Client\Entity\Datasource;
 use Kynx\Saiku\Client\Entity\File;
 use Kynx\Saiku\Client\Entity\Folder;
 use Kynx\Saiku\Client\Entity\License;
@@ -45,6 +46,9 @@ final class SaikuClientIntegrationTest extends TestCase
     private const ADMIN_ID = 1;
     private const USER_ID = 2;
     private const INVALID_USER_ID = 9999;
+    private const REPORT_PATH = '/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku';
+    private const SCHEMA_PATH = '/datasources/foodmart4.xml';
+    private const NONEXISTENT_PATH = '/homes/home:admin/nothere.saiku';
 
     /**
      * Set to `true` to dump request and response history for each request
@@ -226,9 +230,8 @@ final class SaikuClientIntegrationTest extends TestCase
     {
         $repo = $this->saiku->getRespository(true);
         $flattened = iterator_to_array($this->flattenRepo($repo));
-        $file = '/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku';
-        $this->assertArrayHasKey($file, $flattened);
-        $actual = $flattened[$file];
+        $this->assertArrayHasKey(self::REPORT_PATH, $flattened);
+        $actual = $flattened[self::REPORT_PATH];
         /* @var File $actual */
         $this->assertNotEmpty($actual->getContent());
     }
@@ -237,15 +240,13 @@ final class SaikuClientIntegrationTest extends TestCase
     {
         $repo = $this->saiku->getRespository(false, [File::FILETYPE_SCHEMA]);
         $flattened = iterator_to_array($this->flattenRepo($repo));
-        $file = '/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku';
-        $this->assertArrayNotHasKey($file, $flattened);
-        $file = '/datasources/foodmart4.xml';
-        $this->assertArrayHasKey($file, $flattened);
+        $this->assertArrayNotHasKey(self::REPORT_PATH, $flattened);
+        $this->assertArrayHasKey(self::SCHEMA_PATH, $flattened);
     }
 
     public function testGetResourceReturnsContent()
     {
-        $resource = $this->saiku->getResource('/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku');
+        $resource = $this->saiku->getResource(self::REPORT_PATH);
         $this->assertIsString($resource);
         $actual = json_decode($resource, true);
         $this->assertIsArray($actual);
@@ -254,21 +255,37 @@ final class SaikuClientIntegrationTest extends TestCase
     public function testGetNonExistentResourceThrowsNotFoundException()
     {
         $this->expectException(NotFoundException::class);
-        $this->saiku->getResource('/homes/home:admin/nothere.saiku');
+        $this->saiku->getResource(self::NONEXISTENT_PATH);
     }
 
     public function testStoreResourceStoresFile()
     {
         $file = new File();
         $file->setFileType($file::FILETYPE_REPORT);
-        $file->setPath('/homes/home:smith/foo.saiku');
+        $file->setPath(self::NONEXISTENT_PATH);
         $file->setName('foo.saiku');
         $file->setAcl(['ROLE_USER']);
         $file->setContent('{"foo":"bar"}');
 
         $this->saiku->storeResource($file);
-        $actual = $this->saiku->getResource('/homes/home:smith/foo.saiku');
+        $actual = $this->saiku->getResource(self::NONEXISTENT_PATH);
         $this->assertEquals('{"foo":"bar"}', $actual);
+    }
+
+    public function testStoreResourceOverwritesFile()
+    {
+        $file = new File();
+        $file->setFileType($file::FILETYPE_REPORT);
+        $file->setPath(self::NONEXISTENT_PATH);
+        $file->setName('foo.saiku');
+        $file->setAcl(['ROLE_USER']);
+        $file->setContent('{"foo":"bar"}');
+        $this->saiku->storeResource($file);
+
+        $file->setContent('{"bar":"baz"}');
+        $this->saiku->storeResource($file);
+        $actual = $this->saiku->getResource(self::NONEXISTENT_PATH);
+        $this->assertEquals('{"bar":"baz"}', $actual);
     }
 
     public function testStoreResourceStoresFolder()
@@ -277,8 +294,8 @@ final class SaikuClientIntegrationTest extends TestCase
         $folder->setPath('/homes/home:smith/foo');
         $folder->setName('foo');
         $folder->setAcl(['ROLE_USER']);
-
         $this->saiku->storeResource($folder);
+
         $repo = $this->saiku->getRespository();
         $flattened = iterator_to_array($this->flattenRepo($repo));
         $this->assertArrayHasKey('/homes/home:smith/foo', $flattened);
@@ -286,23 +303,97 @@ final class SaikuClientIntegrationTest extends TestCase
 
     public function testDeleteResourceDeletes()
     {
-        $path = '/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku';
         $file = new File();
-        $file->setPath($path);
-
+        $file->setPath(self::REPORT_PATH);
         $this->saiku->deleteResource($file);
+
         $repo = $this->saiku->getRespository();
         $flattened = iterator_to_array($this->flattenRepo($repo));
-        $this->assertArrayNotHasKey($path, $flattened);
+        $this->assertArrayNotHasKey(self::REPORT_PATH, $flattened);
     }
 
     public function testDeleteNonExistentResourceDoesNotThrowWobblies()
     {
-        $path = '/homes/home:admin/nothere.saiku';
         $file = new File();
-        $file->setPath($path);
+        $file->setPath(self::NONEXISTENT_PATH);
         $this->saiku->deleteResource($file);
         $this->assertTrue(true);
+    }
+
+    public function testGetAclReturnsAcl()
+    {
+        $actual = $this->saiku->getAcl(self::REPORT_PATH);
+        $this->assertInstanceOf(Acl::class, $actual);
+    }
+
+    public function testGetNonExistentAclThrowsSaikuException()
+    {
+        $this->expectException(SaikuException::class);
+        $this->saiku->getAcl(self::NONEXISTENT_PATH);
+    }
+
+    public function testSetAclSetsAcl()
+    {
+        $acl = new Acl();
+        $acl->setOwner('smith')
+            ->setType($acl::TYPE_PUBLIC)
+            ->addRole('ROLE_USER', [$acl::METHOD_READ]);
+        $this->saiku->setAcl(self::REPORT_PATH, $acl);
+
+        $actual = $this->saiku->getAcl(self::REPORT_PATH);
+        $this->assertEquals($acl, $actual);
+    }
+
+    public function testSetAclWithUsersSetsAcl()
+    {
+        $acl = new Acl();
+        $acl->setOwner('admin')
+            ->setType($acl::TYPE_SECURED)
+            ->addRole('ROLE_ADMIN', [$acl::METHOD_GRANT])
+            ->addUser('smith', [$acl::METHOD_READ]);
+
+        $this->saiku->setAcl(self::REPORT_PATH, $acl);
+
+        $actual = $this->saiku->getAcl(self::REPORT_PATH);
+        $this->assertEquals($acl, $actual);
+    }
+
+    public function testSetAclNonExistentPathThrowsSaikuException()
+    {
+        $this->expectException(SaikuException::class);
+        $acl = new Acl();
+        $acl->setOwner('smith')
+            ->setType($acl::TYPE_PUBLIC)
+            ->addRole('ROLE_USER', [$acl::METHOD_READ]);
+        $this->saiku->setAcl(self::NONEXISTENT_PATH, $acl);
+    }
+
+    public function testGetDatasourcesReturnsDatasources()
+    {
+        $datasources = $this->saiku->getDatasources();
+        $this->assertCount(2, $datasources);
+        foreach ($datasources as $datasource) {
+            $this->assertInstanceOf(Datasource::class, $datasource);
+        }
+    }
+
+    public function testCreateDatasourceCreated()
+    {
+        $datasource = new Datasource();
+        $datasource->setPath('/datasources/foo.sds')
+            ->setConnectionType('MONDRIAN')
+            ->setConnectionName('foo')
+            ->setSchema('Foodmart')
+            ->setUsername('foo')
+            ->setPassword('bar');
+        $this->saiku->createDatasource($datasource);
+
+        $datasources = $this->saiku->getDatasources();
+        $created = array_reduce($datasources, function ($carry, Datasource $ds) {
+            return $ds->getPath() == '/datasources/foo.sds' ? $ds : $carry;
+        }, null);
+        $this->assertInstanceOf(Datasource::class, $created);
+        $this->assertEquals($datasource, $created);
     }
 
     public function testGetLicenseReturnsLicense()
