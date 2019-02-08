@@ -551,7 +551,8 @@ final class SaikuClient
             'multipart' => [
                 [
                     'name' => 'name',
-                    'contents' => $schema->getName(),
+                    // saiku appends ".xml" to the name before saving, resulting in duplicates
+                    'contents' => basename($schema->getName(), '.xml'),
                 ],
                 [
                     'name' => 'file',
@@ -584,7 +585,8 @@ final class SaikuClient
             'multipart' => [
                 [
                     'name' => 'name',
-                    'contents' => $schema->getName(),
+                    // saiku appends ".xml" to the name before saving, resulting in duplicates
+                    'contents' => basename($schema->getName(), '.xml'),
                 ],
                 [
                     'name' => 'file',

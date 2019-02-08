@@ -27,24 +27,6 @@ class SchemaTest extends TestCase
     }
 
     /**
-     * @covers ::hydrate
-     */
-    public function testHydrateStripsXmlExtension()
-    {
-        $schema = new Schema(['name' => 'earthquakes.xml']);
-        $this->assertEquals('earthquakes', $schema->getName());
-    }
-
-    /**
-     * @covers ::hydrate
-     */
-    public function testHydrateWithOtherExtension()
-    {
-        $schema = new Schema(['name' => 'earthquakes.info']);
-        $this->assertEquals('earthquakes.info', $schema->getName());
-    }
-
-    /**
      * @covers ::setXml
      * @covers ::getXml
      */
