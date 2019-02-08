@@ -23,6 +23,7 @@ use Kynx\Saiku\Client\Entity\Datasource;
 use Kynx\Saiku\Client\Entity\File;
 use Kynx\Saiku\Client\Entity\Folder;
 use Kynx\Saiku\Client\Entity\License;
+use Kynx\Saiku\Client\Entity\Schema;
 use Kynx\Saiku\Client\Entity\User;
 use Kynx\Saiku\Client\Exception\BadLoginException;
 use Kynx\Saiku\Client\Exception\LicenseException;
@@ -412,6 +413,38 @@ final class SaikuClientIntegrationTest extends TestCase
         $this->assertNull($actual);
     }
 
+    public function testGetSchemasReturnsSchemas()
+    {
+        $schemas = $this->saiku->getSchemas();
+        $this->assertCount(2, $schemas);
+        foreach ($schemas as $schema) {
+            $this->assertInstanceOf(Schema::class, $schema);
+            $this->assertNull($schema->getXml());
+        }
+    }
+
+    public function testGetSchemasReturnsContent()
+    {
+        $schemas = $this->saiku->getSchemas(true);
+        $this->assertCount(2, $schemas);
+        foreach ($schemas as $schema) {
+            $this->assertInstanceOf(Schema::class, $schema);
+            $this->assertStringStartsWith('<?xml', $schema->getXml());
+        }
+    }
+
+    public function testCreateSchemaCreates()
+    {
+        $schema = new Schema();
+        $schema->setName('foo.xml')
+            ->setPath('/datasources/foo.xml')
+            ->setXml('<?xml version=\'1.0\'?><Schema name=\'Global Earthquakes\' metamodelVersion=\'4.0\'></Schema>');
+        $this->saiku->createSchema($schema);
+
+        $created = $this->getSchema('foo.xml');
+        $this->assertEquals($schema, $created);
+    }
+
     public function testGetLicenseReturnsLicense()
     {
         $actual = $this->saiku->getLicense();
@@ -537,6 +570,13 @@ final class SaikuClientIntegrationTest extends TestCase
     {
         return array_reduce($this->saiku->getDatasources(), function ($carry, Datasource $ds) use ($connectionName) {
             return $ds->getConnectionName() == $connectionName ? $ds : $carry;
+        }, null);
+    }
+
+    private function getSchema(string $name, $contents = true): ?Schema
+    {
+        return array_reduce($this->saiku->getSchemas($contents), function ($carry, Schema $schema) use ($name) {
+            return $schema->getName() == $name ? $schema : $carry;
         }, null);
     }
 
