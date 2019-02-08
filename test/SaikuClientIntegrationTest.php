@@ -44,11 +44,11 @@ use Psr\Http\Message\ResponseInterface;
 final class SaikuClientIntegrationTest extends TestCase
 {
     private const ADMIN_ID = 1;
-    private const USER_ID = 2;
     private const INVALID_USER_ID = 9999;
     private const REPORT_PATH = '/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku';
     private const SCHEMA_PATH = '/datasources/foodmart4.xml';
     private const NONEXISTENT_PATH = '/homes/home:admin/nothere.saiku';
+    private const DATASOURCE_NAME = 'foodmart';
 
     /**
      * Set to `true` to dump request and response history for each request
@@ -212,8 +212,7 @@ final class SaikuClientIntegrationTest extends TestCase
         $user = new User();
         $user->setId(self::INVALID_USER_ID);
         $this->saiku->deleteUser($user);
-        $actual = $this->saiku->getUser(self::INVALID_USER_ID);
-        $this->assertNull($actual);
+        $this->assertTrue(true);
     }
 
     public function testGetRepositoryReturnsFolder()
@@ -312,7 +311,7 @@ final class SaikuClientIntegrationTest extends TestCase
         $this->assertArrayNotHasKey(self::REPORT_PATH, $flattened);
     }
 
-    public function testDeleteNonExistentResourceDoesNotThrowWobblies()
+    public function testDeleteNonExistentResourceThrowsNoWobblies()
     {
         $file = new File();
         $file->setPath(self::NONEXISTENT_PATH);
@@ -388,12 +387,29 @@ final class SaikuClientIntegrationTest extends TestCase
             ->setPassword('bar');
         $this->saiku->createDatasource($datasource);
 
-        $datasources = $this->saiku->getDatasources();
-        $created = array_reduce($datasources, function ($carry, Datasource $ds) {
-            return $ds->getPath() == '/datasources/foo.sds' ? $ds : $carry;
-        }, null);
+        $created = $this->getDatasource('foo');
         $this->assertInstanceOf(Datasource::class, $created);
-        $this->assertEquals($datasource, $created);
+        $expected = $datasource->toArray();
+        $actual = $created->toArray();
+        $expected['id'] = $actual['id'];
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function testUpdateDatasourceUpdates()
+    {
+        $datasource = $this->getDatasource(self::DATASOURCE_NAME);
+        $datasource->setSchema('Earthquakes');
+        $this->saiku->updateDatasource($datasource);
+        $actual = $this->getDatasource(self::DATASOURCE_NAME);
+        $this->assertEquals($datasource, $actual);
+    }
+
+    public function testDeleteDatasourceDeletes()
+    {
+        $datasource = $this->getDatasource(self::DATASOURCE_NAME);
+        $this->saiku->deleteDatasource($datasource);
+        $actual = $this->getDatasource(self::DATASOURCE_NAME);
+        $this->assertNull($actual);
     }
 
     public function testGetLicenseReturnsLicense()
@@ -510,13 +526,17 @@ final class SaikuClientIntegrationTest extends TestCase
         return __DIR__ . '/../license.lic';
     }
 
-    private function getUser($username): ?User
+    private function getUser(string $username): ?User
     {
         return array_reduce($this->saiku->getUsers(), function ($carry, User $user) use ($username) {
-            if ($carry instanceof User) {
-                return $carry;
-            }
-            return $user->getUsername() == $username ? $user : null;
+            return $user->getUsername() == $username ? $user : $carry;
+        }, null);
+    }
+
+    private function getDatasource(string $connectionName): ?Datasource
+    {
+        return array_reduce($this->saiku->getDatasources(), function ($carry, Datasource $ds) use ($connectionName) {
+            return $ds->getConnectionName() == $connectionName ? $ds : $carry;
         }, null);
     }
 

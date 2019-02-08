@@ -124,4 +124,13 @@ class DatasourceTest extends TestCase
         $this->datasource->setAdvanced("foo=bar\njolly=hockey sticks");
         $this->assertEquals("foo=bar\njolly=hockey sticks", $this->datasource->getAdvanced());
     }
+
+    /**
+     * @covers ::hydrate
+     */
+    public function testHydrateConvertsStringNulls()
+    {
+        $datasource = new Datasource(['driver' => 'null']);
+        $this->assertNull($datasource->getDriver());
+    }
 }

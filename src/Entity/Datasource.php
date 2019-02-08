@@ -79,7 +79,7 @@ final class Datasource extends AbstractEntity
      *
      * @return Datasource
      */
-    public function setDriver(string $driver): Datasource
+    public function setDriver(?string $driver): Datasource
     {
         $this->driver = $driver;
         return $this;
@@ -98,7 +98,7 @@ final class Datasource extends AbstractEntity
      *
      * @return Datasource
      */
-    public function setPath(string $path): Datasource
+    public function setPath(?string $path): Datasource
     {
         $this->path = $path;
         return $this;
@@ -117,7 +117,7 @@ final class Datasource extends AbstractEntity
      *
      * @return Datasource
      */
-    public function setUsername(string $username): Datasource
+    public function setUsername(?string $username): Datasource
     {
         $this->username = $username;
         return $this;
@@ -136,7 +136,7 @@ final class Datasource extends AbstractEntity
      *
      * @return Datasource
      */
-    public function setPassword(string $password): Datasource
+    public function setPassword(?string $password): Datasource
     {
         $this->password = $password;
         return $this;
@@ -155,7 +155,7 @@ final class Datasource extends AbstractEntity
      *
      * @return Datasource
      */
-    public function setSchema(string $schema): Datasource
+    public function setSchema(?string $schema): Datasource
     {
         $this->schema = $schema;
         return $this;
@@ -174,7 +174,7 @@ final class Datasource extends AbstractEntity
      *
      * @return Datasource
      */
-    public function setConnectionName(string $connectionname): Datasource
+    public function setConnectionName(?string $connectionname): Datasource
     {
         $this->connectionname = $connectionname;
         return $this;
@@ -193,7 +193,7 @@ final class Datasource extends AbstractEntity
      *
      * @return Datasource
      */
-    public function setJdbcUrl(string $jdbcurl): Datasource
+    public function setJdbcUrl(?string $jdbcurl): Datasource
     {
         $this->jdbcurl = $jdbcurl;
         return $this;
@@ -212,7 +212,7 @@ final class Datasource extends AbstractEntity
      *
      * @return Datasource
      */
-    public function setConnectionType(string $connectiontype): Datasource
+    public function setConnectionType(?string $connectiontype): Datasource
     {
         $this->connectiontype = $connectiontype;
         return $this;
@@ -235,5 +235,17 @@ final class Datasource extends AbstractEntity
     {
         $this->advanced = $advanced;
         return $this;
+    }
+
+    protected function hydrate(array $properties): void
+    {
+        // @todo Report upstream
+        // For some reason we get "null" as a string value here :|
+        foreach ($properties as $name => $value) {
+            if ($value === "null") {
+                $properties[$name] = null;
+            }
+        }
+        parent::hydrate($properties);
     }
 }
