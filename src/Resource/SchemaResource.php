@@ -19,6 +19,11 @@ final class SchemaResource extends AbstractResource
     const PATH = 'rest/saiku/admin/schema/';
 
     /**
+     * Returns all schemas
+     *
+     * The schemas returned do not have the XML populated: use `RespositoryResource::getResource($schema->getPath())`
+     * if you need it.
+     *
      * @return Schema[]
      */
     public function getAll(): array
@@ -38,6 +43,11 @@ final class SchemaResource extends AbstractResource
         }
     }
 
+    /**
+     * Creates a schema, return new
+     *
+     * The returned schema does not have its XML populated.
+     */
     public function create(Schema $schema): Schema
     {
         $this->validate($schema);
@@ -72,6 +82,11 @@ final class SchemaResource extends AbstractResource
         throw new BadResponseException(sprintf("Failed to create schema '%s'", $schema->getName()), $response);
     }
 
+    /**
+     * Updates an existing schema, returning updated schema
+     *
+     * If the schema does not exist, it is created. The returned schema does not have its XML populated.
+     */
     public function update(Schema $schema): Schema
     {
         $this->validate($schema);
@@ -103,15 +118,23 @@ final class SchemaResource extends AbstractResource
         throw new BadResponseException(sprintf("Failed updating schema '%s'", $schema->getName()), $response);
     }
 
+    /**
+     * Deletes a schema, if it exists
+     */
     public function delete(Schema $schema): void
     {
         $this->validate($schema);
+        $headers = [
+            // Here be the secret sauce. Without an accept header saiku barfs with:
+            // com.sun.jersey.api.MessageException: A message body writer for Java class java.util.ArrayList, and Java type class java.util.ArrayList, and MIME media type application/octet-stream was not found.
+            'Accept' => 'application/json, text/javascript, */*; q=0.01'
+        ];
 
         try {
             // @todo Report upstream
             // The api docs indicate that we should be passing an id, but schemas do not have one. From the source it's
             // clear the name is expected.
-            $this->session->request('DELETE', self::PATH . $schema->getName());
+            $this->session->request('DELETE', self::PATH . $schema->getName(), ['headers' => $headers]);
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
