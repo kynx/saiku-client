@@ -94,7 +94,7 @@ final class UserResource extends AbstractResource
         $user = clone $user;
         $user->setPassword('');
 
-        return $this->updateWithPassword($user);
+        return $this->updatePassword($user);
     }
 
     /**
@@ -102,7 +102,7 @@ final class UserResource extends AbstractResource
      *
      * @throws SaikuException
      */
-    public function updateWithPassword(User $user): User
+    public function updatePassword(User $user): User
     {
         if (! $user->getId()) {
             throw new EntityException("Can not update: user has no ID");

@@ -105,7 +105,7 @@ final class UserResourceTest extends AbstractIntegrationTest
         $oldPassword = $user->getPassword();
         $user->setPassword('foo');
 
-        $actual = $this->user->updateWithPassword($user);
+        $actual = $this->user->updatePassword($user);
         $this->assertEquals("smith", $actual->getUsername());
         $this->assertStringStartsWith('$2a$', $actual->getPassword());
         $this->assertNotEquals($oldPassword, $actual->getPassword());
