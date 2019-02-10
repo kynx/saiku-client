@@ -11,24 +11,24 @@ namespace KynxTest\Saiku\Client\Integration;
 use GuzzleHttp\Cookie\SetCookie;
 use GuzzleHttp\Psr7\ServerRequest;
 use Kynx\Saiku\Client\Resource\UserResource;
-use Kynx\Saiku\Client\SaikuClient;
+use Kynx\Saiku\Client\Saiku;
 use Psr\Http\Message\ResponseInterface;
 
 /**
  * @group integration
  * @coversNothing
  */
-final class SaikuClientTest extends AbstractIntegrationTest
+final class SaikuTest extends AbstractIntegrationTest
 {
     /**
-     * @var SaikuClient
+     * @var Saiku
      */
     private $saiku;
 
     protected function setUp()
     {
         parent::setUp();
-        $this->saiku = new SaikuClient($this->client);
+        $this->saiku = new Saiku($this->client);
     }
 
     public function testProxyReturnsResponse()

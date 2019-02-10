@@ -18,7 +18,7 @@ use Kynx\Saiku\Backup\SaikuRestore;
 use Kynx\Saiku\Client\Exception\LicenseException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\SessionResource;
-use Kynx\Saiku\Client\SaikuClient;
+use Kynx\Saiku\Client\Saiku;
 use Kynx\Saiku\Client\Exception\SaikuExceptionInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -120,7 +120,7 @@ abstract class AbstractIntegrationTest extends TestCase
 
     private function restoreBackup()
     {
-        $saiku = new SaikuClient($this->client);
+        $saiku = new Saiku($this->client);
         $saiku->setUsername($this->session->getUsername())
             ->setPassword($this->session->getPassword());
 
@@ -137,7 +137,7 @@ abstract class AbstractIntegrationTest extends TestCase
         }
     }
 
-    private function checkLicense(SaikuClient $saiku): bool
+    private function checkLicense(Saiku $saiku): bool
     {
         try {
             $saiku->license()->get();
@@ -149,7 +149,7 @@ abstract class AbstractIntegrationTest extends TestCase
         return true;
     }
 
-    private function loadLicense(SaikuClient $saiku): void
+    private function loadLicense(Saiku $saiku): void
     {
         $file = $this->getLicenseFile();
         $fh = fopen($file, 'r');

@@ -26,7 +26,7 @@ use Psr\Http\Message\ServerRequestInterface;
  *
  * @see https://community.meteorite.bi/docs/
  */
-final class SaikuClient
+final class Saiku
 {
     private $client;
     private $datasource;
@@ -52,7 +52,7 @@ final class SaikuClient
     /**
      * Returns new instance with given cookie jar injected
      */
-    public function withCookieJar(CookieJarInterface $cookieJar): SaikuClient
+    public function withCookieJar(CookieJarInterface $cookieJar): Saiku
     {
         $options = $this->client->getConfig();
         $options['cookies'] = $cookieJar;
@@ -63,7 +63,7 @@ final class SaikuClient
     /**
      * Sets Saiku username to use for connection
      */
-    public function setUsername(string $username): SaikuClient
+    public function setUsername(string $username): Saiku
     {
         $this->session->setUsername($username);
         return $this;
@@ -72,7 +72,7 @@ final class SaikuClient
     /**
      * Sets Saiku password to use for connection
      */
-    public function setPassword(string $password): SaikuClient
+    public function setPassword(string $password): Saiku
     {
         $this->session->setPassword($password);
         return $this;

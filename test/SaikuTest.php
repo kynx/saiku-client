@@ -21,15 +21,15 @@ use Kynx\Saiku\Client\Exception\BadLoginException;
 use Kynx\Saiku\Client\Exception\BadResponseException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Entity\User;
-use Kynx\Saiku\Client\SaikuClient;
+use Kynx\Saiku\Client\Saiku;
 use PHPUnit\Framework\TestCase as TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * @coversDefaultClass \Kynx\Saiku\Client\SaikuClient
+ * @coversDefaultClass \Kynx\Saiku\Client\Saiku
  */
-class SaikuClientTest extends TestCase
+class SaikuTest extends TestCase
 {
     /**
      * @var Client
@@ -37,7 +37,7 @@ class SaikuClientTest extends TestCase
     private $client;
 
     /**
-     * @var SaikuClient
+     * @var Saiku
      */
     private $saiku;
     /**
@@ -69,7 +69,7 @@ class SaikuClientTest extends TestCase
             'cookies' => $this->cookieJar,
         ];
         $this->client = new Client($options);
-        $this->saiku = new SaikuClient($this->client);
+        $this->saiku = new Saiku($this->client);
         $this->saiku->setUsername('foo')
             ->setPassword('bar');
     }
@@ -81,7 +81,7 @@ class SaikuClientTest extends TestCase
             'cookies' => true,
         ];
         $client = new Client($options);
-        new SaikuClient($client);
+        new Saiku($client);
     }
 
     public function testConstructorNoCookiesThrowsException()
@@ -91,7 +91,7 @@ class SaikuClientTest extends TestCase
             'base_uri' => 'http://example.com/saiku',
         ];
         $client = new Client($options);
-        new SaikuClient($client);
+        new Saiku($client);
     }
 
     /**
@@ -101,7 +101,7 @@ class SaikuClientTest extends TestCase
     {
         $cookieJar = $this->prophesize(CookieJarInterface::class);
         $actual = $this->saiku->withCookieJar($cookieJar->reveal());
-        $this->assertInstanceOf(SaikuClient::class, $actual);
+        $this->assertInstanceOf(Saiku::class, $actual);
         $this->assertNotEquals($this->saiku, $actual);
     }
 
