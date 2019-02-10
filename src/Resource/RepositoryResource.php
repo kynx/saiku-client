@@ -31,19 +31,15 @@ final class RepositoryResource extends AbstractResource
      * Although the endpoint accepts a "path" parameter, using it always returns an empty response. From what I can tell
      * this is a bug in org.saiku.repository.JackRabbitRepositoryManager#getRepoObjects that stops returning repository
      * objects for a folder: folders are not processed because a conditional checks on whether it's a file first.
-     *
-     * @param bool $contents    If true, node contents are fetched as well
-     * @param array|null $types
-     *
-     * @return Folder
      */
-    public function get(bool $contents = false, ?array $types = null): Folder
+    public function get(?string $path = null, bool $contents = false, ?array $types = null): Folder
     {
         try {
             if ($types === null) {
                 $types = File::getAllFiletypes();
             }
             $query = [
+                'path' => $path,
                 'type' => join(',', $types),
             ];
             $response = $this->session->request('GET', self::PATH, ['query' => $query]);
@@ -52,7 +48,12 @@ final class RepositoryResource extends AbstractResource
         }
 
         if ($response->getStatusCode() == 200) {
-            $folder = new Folder(['repoObjects' => $this->decodeResponse($response)]);
+            $decoded = $this->decodeResponse($response);
+            if ($path && count($decoded) == 1) {
+                $folder = new Folder($decoded[0]);
+            } else {
+                $folder = new Folder(['path' => $path ?? '/', 'repoObjects' => $decoded]);
+            }
             if ($contents) {
                 $this->populateFolderContents($folder);
             }
