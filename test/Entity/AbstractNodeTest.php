@@ -40,7 +40,7 @@ class AbstractNodeTest extends TestCase
     /**
      * @covers ::getInstance
      */
-    public function testGetInstanceInvalidTypeThrowsHydrationException()
+    public function testGetInstanceInvalidTypeThrowsException()
     {
         $this->expectException(EntityException::class);
         AbstractNode::getInstance(666);
@@ -49,7 +49,7 @@ class AbstractNodeTest extends TestCase
     /**
      * @covers ::getInstance
      */
-    public function testGetInstanceUnknownTypeThrowsHydrationException()
+    public function testGetInstanceUnknownTypeThrowsException()
     {
         $this->expectException(EntityException::class);
         AbstractNode::getInstance('{"type":"foo"}');
@@ -71,35 +71,6 @@ class AbstractNodeTest extends TestCase
     {
         $actual = AbstractNode::getInstance(["type" => AbstractNode::TYPE_FILE]);
         $this->assertInstanceOf(File::class, $actual);
-    }
-
-    /**
-     * @covers ::hydrate
-     */
-    public function testHydrateSetsJavaClass()
-    {
-        $instance = $this->getInstance(['@class' => 'foo']);
-        $this->assertEquals('foo', $instance->getJavaClass());
-    }
-
-    /**
-     * @covers ::hydrate
-     */
-    public function testHydrateAcceptsMissingClass()
-    {
-        $instance = $this->getInstance();
-        $this->assertNull($instance->getJavaClass());
-    }
-
-    /**
-     * @covers ::extract
-     */
-    public function testExtractSetsClass()
-    {
-        $instance = $this->getInstance(['@class' => 'foo']);
-        $extracted = $instance->toArray();
-        $this->assertArrayNotHasKey('javaClass', $extracted);
-        $this->assertEquals('foo', $extracted['@class']);
     }
 
     /**
@@ -129,15 +100,6 @@ class AbstractNodeTest extends TestCase
     {
         $instance = $this->getInstance(['id' => 'foo']);
         $this->assertEquals('foo', $instance->getId());
-    }
-
-    /**
-     * @covers ::getJavaClass
-     */
-    public function testGetJavaClass()
-    {
-        $instance = $this->getInstance(['@class' => 'foo']);
-        $this->assertEquals('foo', $instance->getJavaClass());
     }
 
     /**

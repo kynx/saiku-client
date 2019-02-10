@@ -18,10 +18,6 @@ abstract class AbstractNode extends AbstractEntity
     /**
      * @var string
      */
-    protected $javaClass;
-    /**
-     * @var string
-     */
     protected $name;
     /**
      * @var string
@@ -72,14 +68,6 @@ abstract class AbstractNode extends AbstractEntity
     /**
      * @return string
      */
-    public function getJavaClass(): ?string
-    {
-        return $this->javaClass;
-    }
-
-    /**
-     * @return string
-     */
     public function getName(): string
     {
         return $this->name;
@@ -125,18 +113,9 @@ abstract class AbstractNode extends AbstractEntity
         $this->acl = $acl;
     }
 
-    protected function hydrate(array $properties): void
-    {
-        $this->javaClass = $properties['@class'] ?? null;
-        unset($properties['@class']);
-        parent::hydrate($properties);
-    }
-
     protected function extract(): array
     {
         $extracted = parent::extract();
-        $extracted['@class'] = $extracted['javaClass'];
-        unset($extracted['javaClass']);
         if ($this instanceof Folder) {
             $extracted['type'] = self::TYPE_FOLDER;
         } else {
