@@ -1,18 +1,25 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Entity;
+
+use function array_keys;
+use function count;
+use function get_object_vars;
+use function is_array;
+use function is_string;
+use function json_decode;
+use function json_encode;
 
 abstract class AbstractEntity
 {
     /**
-     * AbstractModel constructor.
-     *
      * @param array|string|null $json
      */
     public function __construct($json = null)
@@ -26,17 +33,17 @@ abstract class AbstractEntity
         }
     }
 
-    public function __toString(): string
+    public function __toString() : string
     {
         return json_encode($this->extract());
     }
 
-    public function toArray(): array
+    public function toArray() : array
     {
         return $this->extract();
     }
 
-    protected function hydrate(array $properties): void
+    protected function hydrate(array $properties) : void
     {
         $vars = array_keys(get_object_vars($this));
         foreach ($vars as $var) {
@@ -46,7 +53,7 @@ abstract class AbstractEntity
         }
     }
 
-    protected function extract(): array
+    protected function extract() : array
     {
         return get_object_vars($this);
     }

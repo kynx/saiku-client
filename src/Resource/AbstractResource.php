@@ -1,14 +1,17 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Resource;
 
 use Psr\Http\Message\ResponseInterface;
+
+use function json_decode;
 
 abstract class AbstractResource
 {
@@ -21,7 +24,7 @@ abstract class AbstractResource
         $this->session = $session;
     }
 
-    protected function decodeResponse(ResponseInterface $response): array
+    protected function decodeResponse(ResponseInterface $response) : array
     {
         return json_decode((string) $response->getBody(), true);
     }

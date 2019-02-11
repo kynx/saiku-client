@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Resource;
 
@@ -14,9 +15,13 @@ use Kynx\Saiku\Client\Exception\BadResponseException;
 use Kynx\Saiku\Client\Exception\EntityException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 
+use function array_map;
+use function basename;
+use function sprintf;
+
 final class SchemaResource extends AbstractResource
 {
-    const PATH = 'rest/saiku/admin/schema/';
+    public const PATH = 'rest/saiku/admin/schema/';
 
     /**
      * Returns all schemas
@@ -26,7 +31,7 @@ final class SchemaResource extends AbstractResource
      *
      * @return Schema[]
      */
-    public function getAll(): array
+    public function getAll() : array
     {
         try {
             $response = $this->session->request('GET', self::PATH);
@@ -34,7 +39,7 @@ final class SchemaResource extends AbstractResource
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if ($response->getStatusCode() == 200) {
+        if ($response->getStatusCode() === 200) {
             return array_map(function (array $item) {
                 return new Schema($item);
             }, $this->decodeResponse($response));
@@ -48,7 +53,7 @@ final class SchemaResource extends AbstractResource
      *
      * The returned schema does not have its XML populated.
      */
-    public function create(Schema $schema): Schema
+    public function create(Schema $schema) : Schema
     {
         $this->validate($schema);
 
@@ -60,8 +65,8 @@ final class SchemaResource extends AbstractResource
                     'contents' => basename($schema->getName(), '.xml'),
                 ],
                 [
-                    'name' => 'file',
-                    'contents' => $schema->getXml()
+                    'name'     => 'file',
+                    'contents' => $schema->getXml(),
                 ],
             ],
         ];
@@ -75,7 +80,7 @@ final class SchemaResource extends AbstractResource
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if ($response->getStatusCode() == '200') {
+        if ($response->getStatusCode() === 200) {
             return new Schema((string) $response->getBody());
         }
 
@@ -87,7 +92,7 @@ final class SchemaResource extends AbstractResource
      *
      * If the schema does not exist, it is created. The returned schema does not have its XML populated.
      */
-    public function update(Schema $schema): Schema
+    public function update(Schema $schema) : Schema
     {
         $this->validate($schema);
 
@@ -99,8 +104,8 @@ final class SchemaResource extends AbstractResource
                     'contents' => basename($schema->getName(), '.xml'),
                 ],
                 [
-                    'name' => 'file',
-                    'contents' => $schema->getXml()
+                    'name'     => 'file',
+                    'contents' => $schema->getXml(),
                 ],
             ],
         ];
@@ -111,7 +116,7 @@ final class SchemaResource extends AbstractResource
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if ($response->getStatusCode() == '200') {
+        if ($response->getStatusCode() === 200) {
             return new Schema((string) $response->getBody());
         }
 
@@ -121,13 +126,15 @@ final class SchemaResource extends AbstractResource
     /**
      * Deletes a schema, if it exists
      */
-    public function delete(Schema $schema): void
+    public function delete(Schema $schema) : void
     {
         $this->validate($schema);
         $headers = [
+            // phpcs:disable
             // Here be the secret sauce. Without an accept header saiku barfs with:
             // com.sun.jersey.api.MessageException: A message body writer for Java class java.util.ArrayList, and Java type class java.util.ArrayList, and MIME media type application/octet-stream was not found.
-            'Accept' => 'application/json, text/javascript, */*; q=0.01'
+            // phpcs:enable
+            'Accept' => 'application/json, text/javascript, */*; q=0.01',
         ];
 
         try {
@@ -143,7 +150,7 @@ final class SchemaResource extends AbstractResource
     private function validate(Schema $schema)
     {
         if (! $schema->getName()) {
-            throw new EntityException("Schema must have a name");
+            throw new EntityException('Schema must have a name');
         }
     }
 }

@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client;
 
@@ -19,23 +20,17 @@ use Kynx\Saiku\Client\Resource\SessionResource;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 
+use function end;
+
 abstract class AbstractTest extends TestCase
 {
-    /**
-     * @var Client
-     */
+    /** @var Client */
     protected $client;
-    /**
-     * @var HandlerStack
-     */
+    /** @var HandlerStack */
     protected $handler;
-    /**
-     * @var CookieJar
-     */
+    /** @var CookieJar */
     protected $cookieJar;
-    /**
-     * @var array
-     */
+    /** @var array */
     protected $history;
 
     protected $sessionId = 'DF76204934E41D3E3A930508E57B740D';
@@ -43,20 +38,20 @@ abstract class AbstractTest extends TestCase
     protected function setUp()
     {
         $this->history = [];
-        $history = Middleware::history($this->history);
+        $history       = Middleware::history($this->history);
         $this->handler = HandlerStack::create();
         $this->handler->push($history);
 
         $this->cookieJar = new CookieJar();
-        $options = [
+        $options         = [
             'base_uri' => 'http://localhost:9090/saiku/',
-            'handler' => $this->handler,
-            'cookies' => $this->cookieJar,
+            'handler'  => $this->handler,
+            'cookies'  => $this->cookieJar,
         ];
-        $this->client = new Client($options);
+        $this->client    = new Client($options);
     }
 
-    protected function getSessionResource(): SessionResource
+    protected function getSessionResource() : SessionResource
     {
         $session = new SessionResource($this->client);
         $session->setUsername('foo');
@@ -65,7 +60,7 @@ abstract class AbstractTest extends TestCase
         return $session;
     }
 
-    protected function getSessionCookie(): SetCookie
+    protected function getSessionCookie() : SetCookie
     {
         $cookie = new SetCookie();
         $cookie->setName('JSESSIONID');
@@ -84,10 +79,10 @@ abstract class AbstractTest extends TestCase
         return new Response(200, ['Set-Cookie' => 'JSESSIONID=' . $this->sessionId . '; Path=/; HttpOnly']);
     }
 
-    protected function getLastRequest(): RequestInterface
+    protected function getLastRequest() : RequestInterface
     {
         if (empty($this->history)) {
-            $this->fail("No request made");
+            $this->fail('No request made');
         }
         $last = end($this->history);
         return $last['request'];

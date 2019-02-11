@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Entity;
 
@@ -18,9 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 class FolderTest extends TestCase
 {
-    /**
-     * @var Folder
-     */
+    /** @var Folder */
     private $folder;
 
     protected function setUp()
@@ -40,8 +39,8 @@ class FolderTest extends TestCase
                 ],
             ],
         ];
-        $folder = new Folder($properties);
-        $actual = $folder->getRepoObjects();
+        $folder     = new Folder($properties);
+        $actual     = $folder->getRepoObjects();
         $this->assertCount(1, $actual);
         $this->assertInstanceOf(File::class, $actual[0]);
     }

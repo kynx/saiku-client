@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client;
 
@@ -15,17 +16,16 @@ use GuzzleHttp\Psr7\ServerRequest;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\UserResource;
 use Kynx\Saiku\Client\Saiku;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+
+use function json_decode;
 
 /**
  * @coversDefaultClass \Kynx\Saiku\Client\Saiku
  */
 class SaikuTest extends AbstractTest
 {
-    /**
-     * @var Saiku
-     */
+    /** @var Saiku */
     private $saiku;
 
     protected function setUp()
@@ -46,7 +46,7 @@ class SaikuTest extends AbstractTest
         $options = [
             'cookies' => true,
         ];
-        $client = new Client($options);
+        $client  = new Client($options);
         new Saiku($client);
     }
 
@@ -59,7 +59,7 @@ class SaikuTest extends AbstractTest
         $options = [
             'base_uri' => 'http://example.com/saiku',
         ];
-        $client = new Client($options);
+        $client  = new Client($options);
         new Saiku($client);
     }
 
@@ -69,7 +69,7 @@ class SaikuTest extends AbstractTest
     public function testWithCookieJarReturnInstance()
     {
         $cookieJar = $this->prophesize(CookieJarInterface::class);
-        $actual = $this->saiku->withCookieJar($cookieJar->reveal());
+        $actual    = $this->saiku->withCookieJar($cookieJar->reveal());
         $this->assertInstanceOf(Saiku::class, $actual);
         $this->assertNotEquals($this->saiku, $actual);
     }
@@ -85,7 +85,7 @@ class SaikuTest extends AbstractTest
         }]';
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(200, ['Content-Type' => 'application/json'], $users)
+            new Response(200, ['Content-Type' => 'application/json'], $users),
         ]);
         $actual = $this->saiku->proxy(new ServerRequest('GET', UserResource::PATH));
         $this->assertInstanceOf(ResponseInterface::class, $actual);
@@ -100,13 +100,13 @@ class SaikuTest extends AbstractTest
     {
         $this->cookieJar->setCookie($this->getSessionCookie());
         $this->mockResponses([
-            new Response(200, ['Content-Type' => 'application/json'], '[]')
+            new Response(200, ['Content-Type' => 'application/json'], '[]'),
         ]);
         $this->saiku->proxy(new ServerRequest('GET', '/foo'));
         $this->assertCount(1, $this->history);
-        /* @var RequestInterface $request */
+        /** @var RequestInterface $request */
         $request = $this->history[0]['request'];
-        $uri = $request->getUri();
+        $uri     = $request->getUri();
         $this->assertEquals('/saiku/foo', $uri->getPath());
     }
 
@@ -119,7 +119,7 @@ class SaikuTest extends AbstractTest
         $this->mockResponses([
             new Response(401),
             $this->getLoginSuccessResponse(),
-            new Response(200, ['Content-Type' => 'application/json'], '[]')
+            new Response(200, ['Content-Type' => 'application/json'], '[]'),
         ]);
         $actual = $this->saiku->proxy(new ServerRequest('GET', UserResource::PATH));
         $this->assertInstanceOf(ResponseInterface::class, $actual);

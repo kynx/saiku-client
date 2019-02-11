@@ -1,15 +1,18 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Entity;
 
 use Kynx\Saiku\Client\Entity\AbstractEntity;
 use PHPUnit\Framework\TestCase;
+
+use function get_object_vars;
 
 /**
  * @coversDefaultClass \Kynx\Saiku\Client\Entity\AbstractEntity

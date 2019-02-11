@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Resource;
 
@@ -15,14 +16,19 @@ use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\RepositoryResource;
 use KynxTest\Saiku\Client\AbstractTest;
 
+use function explode;
+use function json_encode;
+use function parse_str;
+use function parse_url;
+
+use const PHP_URL_QUERY;
+
 /**
  * @coversDefaultClass \Kynx\Saiku\Client\Resource\RepositoryResource
  */
 final class RepositoryResourceTest extends AbstractTest
 {
-    /**
-     * @var RepositoryResource
-     */
+    /** @var RepositoryResource */
     private $repo;
 
     protected function setUp()
@@ -37,12 +43,12 @@ final class RepositoryResourceTest extends AbstractTest
      */
     public function testGet()
     {
-        $file1 = new File('{"path":"/foo.saiku"}');
-        $file2 = new File('{"path"::/bar.saiku"}');
+        $file1   = new File('{"path":"/foo.saiku"}');
+        $file2   = new File('{"path"::/bar.saiku"}');
         $listing = [$file1->toArray(), $file2->toArray()];
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(200, [], json_encode($listing))
+            new Response(200, [], json_encode($listing)),
         ]);
         $actual = $this->repo->get();
         $this->assertEquals('/', $actual->getPath());
@@ -54,12 +60,12 @@ final class RepositoryResourceTest extends AbstractTest
      */
     public function testGetRequestsPath()
     {
-        $file1 = new File('{"path":"/homes/foo.saiku"}');
-        $file2 = new File('{"path"::/homes/bar.saiku"}');
+        $file1   = new File('{"path":"/homes/foo.saiku"}');
+        $file2   = new File('{"path"::/homes/bar.saiku"}');
         $listing = [$file1->toArray(), $file2->toArray()];
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(200, [], json_encode([['path' => '/homes', 'repoObjects' => $listing]]))
+            new Response(200, [], json_encode([['path' => '/homes', 'repoObjects' => $listing]])),
         ]);
         $actual = $this->repo->get('/homes');
         $this->assertEquals('/homes', $actual->getPath());
@@ -75,14 +81,14 @@ final class RepositoryResourceTest extends AbstractTest
      */
     public function testGetRequestsContent()
     {
-        $file1 = new File('{"fileType":"'. File::FILETYPE_REPORT . '","path":"/foo.saiku"}');
+        $file1 = new File('{"fileType":"' . File::FILETYPE_REPORT . '","path":"/foo.saiku"}');
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
             new Response(200, [], json_encode([$file1->toArray()])),
-            new Response(200, [], "foo")
+            new Response(200, [], 'foo'),
         ]);
         $actual = $this->repo->get(null, true);
-        $this->assertEquals("foo", $actual->getRepoObjects()[0]->getContent());
+        $this->assertEquals('foo', $actual->getRepoObjects()[0]->getContent());
     }
 
     /**
@@ -92,7 +98,7 @@ final class RepositoryResourceTest extends AbstractTest
     {
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(200, [], '[]')
+            new Response(200, [], '[]'),
         ]);
         $this->repo->get();
         $request = $this->getLastRequest();
@@ -107,7 +113,7 @@ final class RepositoryResourceTest extends AbstractTest
     {
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(200, [], '[]')
+            new Response(200, [], '[]'),
         ]);
         $types = [File::FILETYPE_REPORT, File::FILETYPE_DATASOURCE];
         $this->repo->get(null, false, $types);
@@ -124,7 +130,7 @@ final class RepositoryResourceTest extends AbstractTest
         $this->expectException(SaikuException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(500)
+            new Response(500),
         ]);
         $this->repo->get();
     }
@@ -137,7 +143,7 @@ final class RepositoryResourceTest extends AbstractTest
         $this->expectException(BadResponseException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(201)
+            new Response(201),
         ]);
         $this->repo->get();
     }
@@ -149,7 +155,7 @@ final class RepositoryResourceTest extends AbstractTest
     {
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(200, [], "foo")
+            new Response(200, [], 'foo'),
         ]);
         $actual = $this->repo->getResource('/foo');
         $this->assertEquals('foo', $actual);
@@ -167,7 +173,7 @@ final class RepositoryResourceTest extends AbstractTest
         $this->expectExceptionMessage("Error getting '/foo'. Are you sure it exists?");
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(500)
+            new Response(500),
         ]);
         $this->repo->getResource('/foo');
     }
@@ -180,7 +186,7 @@ final class RepositoryResourceTest extends AbstractTest
         $this->expectException(SaikuException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(404)
+            new Response(404),
         ]);
         $this->repo->getResource('/foo');
     }
@@ -193,7 +199,7 @@ final class RepositoryResourceTest extends AbstractTest
         $this->expectException(BadResponseException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(201)
+            new Response(201),
         ]);
         $this->repo->getResource('/foo');
     }

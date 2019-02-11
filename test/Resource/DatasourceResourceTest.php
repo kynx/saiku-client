@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Resource;
 
@@ -16,16 +17,21 @@ use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\DatasourceResource;
 use KynxTest\Saiku\Client\AbstractTest;
 
+use function array_diff_key;
+use function array_flip;
+use function array_intersect_key;
+use function array_map;
+use function json_decode;
+
 /**
  * @coversDefaultClass \Kynx\Saiku\Client\Resource\DatasourceResource
  */
 final class DatasourceResourceTest extends AbstractTest
 {
-    /**
-     * @var DatasourceResource
-     */
+    /** @var DatasourceResource */
     private $datasource;
 
+    // phpcs:disable
     private $datasources = '[
         {
             "enabled":null,
@@ -60,6 +66,7 @@ final class DatasourceResourceTest extends AbstractTest
             "csv":null
         }
     ]';
+    // phpcs:enable
 
     protected function setUp()
     {
@@ -75,10 +82,10 @@ final class DatasourceResourceTest extends AbstractTest
     {
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(200, ['Content-Type' => 'application/json'], $this->datasources)
+            new Response(200, ['Content-Type' => 'application/json'], $this->datasources),
         ]);
         $datasources = $this->datasource->getAll();
-        $actual = array_map(function (Datasource $datasource) {
+        $actual      = array_map(function (Datasource $datasource) {
             return $datasource->toArray();
         }, $datasources);
 
@@ -94,7 +101,7 @@ final class DatasourceResourceTest extends AbstractTest
         $this->expectException(SaikuException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(500)
+            new Response(500),
         ]);
         $this->datasource->getAll();
     }
@@ -107,7 +114,7 @@ final class DatasourceResourceTest extends AbstractTest
         $this->expectException(BadResponseException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(201)
+            new Response(201),
         ]);
         $this->datasource->getAll();
     }
@@ -119,10 +126,10 @@ final class DatasourceResourceTest extends AbstractTest
     {
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response('200', [], '{"connectionname":"foo","connectiontype":"MONDRIAN"}')
+            new Response('200', [], '{"connectionname":"foo","connectiontype":"MONDRIAN"}'),
         ]);
         $datasource = $this->getValidDatasource();
-        $actual = $this->datasource->create($datasource);
+        $actual     = $this->datasource->create($datasource);
         $this->assertEquals($datasource, $actual);
     }
 
@@ -134,13 +141,13 @@ final class DatasourceResourceTest extends AbstractTest
         $json = '{"connectionname":"foo","connectiontype":"MONDRIAN"}';
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response('200', [], $json)
+            new Response('200', [], $json),
         ]);
         $datasource = $this->getValidDatasource();
         $this->datasource->create($datasource);
-        $request = $this->getLastRequest();
+        $request  = $this->getLastRequest();
         $expected = json_decode($json, true);
-        $actual = array_intersect_key(json_decode((string) $request->getBody(), true), $expected);
+        $actual   = array_intersect_key(json_decode((string) $request->getBody(), true), $expected);
         $this->assertEquals('POST', $request->getMethod());
         $this->assertEquals($expected, $actual);
     }
@@ -153,7 +160,7 @@ final class DatasourceResourceTest extends AbstractTest
         $this->expectException(SaikuException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response('500')
+            new Response('500'),
         ]);
         $this->datasource->create($this->getValidDatasource());
     }
@@ -166,7 +173,7 @@ final class DatasourceResourceTest extends AbstractTest
         $this->expectException(BadResponseException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response('201')
+            new Response('201'),
         ]);
         $this->datasource->create($this->getValidDatasource());
     }
@@ -189,10 +196,10 @@ final class DatasourceResourceTest extends AbstractTest
     {
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response('200', [], '{"id":"aaa","connectionname":"foo","connectiontype":"MONDRIAN"}')
+            new Response('200', [], '{"id":"aaa","connectionname":"foo","connectiontype":"MONDRIAN"}'),
         ]);
         $datasource = $this->getValidDatasource('aaa');
-        $actual = $this->datasource->update($datasource);
+        $actual     = $this->datasource->update($datasource);
         $this->assertEquals($datasource, $actual);
     }
 
@@ -204,13 +211,13 @@ final class DatasourceResourceTest extends AbstractTest
         $json = '{"id":"aaa","connectionname":"foo","connectiontype":"MONDRIAN"}';
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response('200', [], $json)
+            new Response('200', [], $json),
         ]);
         $datasource = $this->getValidDatasource('aaa');
         $this->datasource->update($datasource);
-        $request = $this->getLastRequest();
+        $request  = $this->getLastRequest();
         $expected = json_decode($json, true);
-        $actual = array_intersect_key(json_decode((string) $request->getBody(), true), $expected);
+        $actual   = array_intersect_key(json_decode((string) $request->getBody(), true), $expected);
         $this->assertEquals('PUT', $request->getMethod());
         $this->assertEquals($expected, $actual);
     }
@@ -232,7 +239,7 @@ final class DatasourceResourceTest extends AbstractTest
         $this->expectException(SaikuException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response('500')
+            new Response('500'),
         ]);
         $this->datasource->update($this->getValidDatasource('aaa'));
     }
@@ -245,7 +252,7 @@ final class DatasourceResourceTest extends AbstractTest
         $this->expectException(BadResponseException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response('201')
+            new Response('201'),
         ]);
         $this->datasource->update($this->getValidDatasource('aaa'));
     }
@@ -257,7 +264,7 @@ final class DatasourceResourceTest extends AbstractTest
     {
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response('200', [], '{"id":"aaa","connectionname":"foo","connectiontype":"MONDRIAN"}')
+            new Response('200', [], '{"id":"aaa","connectionname":"foo","connectiontype":"MONDRIAN"}'),
         ]);
         $datasource = $this->getValidDatasource('aaa');
         $this->datasource->delete($datasource);
@@ -282,7 +289,7 @@ final class DatasourceResourceTest extends AbstractTest
         $this->expectException(SaikuException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response('500')
+            new Response('500'),
         ]);
         $this->datasource->delete($this->getValidDatasource('aaa'));
     }
@@ -296,7 +303,7 @@ final class DatasourceResourceTest extends AbstractTest
         }, json_decode($this->datasources, true));
     }
 
-    private function getValidDatasource(?string $id = null): Datasource
+    private function getValidDatasource(?string $id = null) : Datasource
     {
         $datasource = new Datasource($id ? ['id' => $id] : null);
         $datasource->setConnectionName('foo')

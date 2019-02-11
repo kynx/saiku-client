@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Integration;
 
@@ -15,19 +16,21 @@ use Kynx\Saiku\Client\Entity\Folder;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\RepositoryResource;
 
+use function array_map;
+use function iterator_to_array;
+use function json_decode;
+
 /**
  * @group integration
  * @coversNothing
  */
 final class RepositoryResourceTest extends AbstractIntegrationTest
 {
-    private const REPORT_PATH = '/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku';
-    private const SCHEMA_PATH = '/datasources/foodmart4.xml';
+    private const REPORT_PATH      = '/homes/home:admin/sample_reports/average_mag_and_depth_over_time.saiku';
+    private const SCHEMA_PATH      = '/datasources/foodmart4.xml';
     private const NONEXISTENT_PATH = '/homes/home:admin/nothere.saiku';
 
-    /**
-     * @var RepositoryResource
-     */
+    /** @var RepositoryResource */
     private $repo;
 
     protected function setUp()
@@ -40,7 +43,7 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
     {
         $repo = $this->repo->get();
         $this->assertInstanceOf(Folder::class, $repo);
-        $actual = array_map(function (AbstractNode $node) {
+        $actual   = array_map(function (AbstractNode $node) {
             return $node->getName();
         }, $repo->getRepoObjects());
         $expected = ['datasources', 'etc', 'homes'];
@@ -51,7 +54,7 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
     {
         $repo = $this->repo->get('/homes');
         $this->assertInstanceOf(Folder::class, $repo);
-        $actual = array_map(function (AbstractNode $node) {
+        $actual   = array_map(function (AbstractNode $node) {
             return $node->getName();
         }, $repo->getRepoObjects());
         $expected = ['home:admin', 'home:smith'];
@@ -65,7 +68,7 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
         $flattened = iterator_to_array($this->flattenRepo($repo));
         $this->assertArrayHasKey(self::REPORT_PATH, $flattened);
         $actual = $flattened[self::REPORT_PATH];
-        /* @var File $actual */
+        /** @var File $actual */
         $this->assertNotEmpty($actual->getContent());
     }
 
@@ -136,7 +139,7 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
         $folder->setAcl(['ROLE_USER']);
         $this->repo->storeResource($folder);
 
-        $repo = $this->repo->get();
+        $repo      = $this->repo->get();
         $flattened = iterator_to_array($this->flattenRepo($repo));
         $this->assertArrayHasKey('/homes/home:smith/foo', $flattened);
     }
@@ -147,7 +150,7 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
         $file->setPath(self::REPORT_PATH);
         $this->repo->deleteResource($file);
 
-        $repo = $this->repo->get();
+        $repo      = $this->repo->get();
         $flattened = iterator_to_array($this->flattenRepo($repo));
         $this->assertArrayNotHasKey(self::REPORT_PATH, $flattened);
     }

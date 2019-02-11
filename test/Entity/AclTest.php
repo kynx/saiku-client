@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Entity;
 
@@ -17,9 +18,7 @@ use PHPUnit\Framework\TestCase;
  */
 class AclTest extends TestCase
 {
-    /**
-     * @var Acl
-     */
+    /** @var Acl */
     private $acl;
 
     protected function setUp()
@@ -33,7 +32,7 @@ class AclTest extends TestCase
     public function testHydrateNullsEmptyUsers()
     {
         $properties = ['users' => []];
-        $acl = new Acl($properties);
+        $acl        = new Acl($properties);
         $this->assertNull($acl->getUsers());
     }
 
@@ -63,7 +62,7 @@ class AclTest extends TestCase
     public function testSetTypeInvalidThrowsEntityException()
     {
         $this->expectException(EntityException::class);
-        $this->acl->setType("FOO");
+        $this->acl->setType('FOO');
     }
 
     /**

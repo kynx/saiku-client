@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Resource;
 
@@ -18,7 +19,7 @@ final class LicenseResource
 {
     use ExceptionTrait;
 
-    const PATH = 'rest/saiku/api/license/';
+    public const PATH = 'rest/saiku/api/license/';
 
     private $session;
     private $client;
@@ -26,10 +27,10 @@ final class LicenseResource
     public function __construct(SessionResource $session, ClientInterface $client)
     {
         $this->session = $session;
-        $this->client = $client;
+        $this->client  = $client;
     }
 
-    public function get(): License
+    public function get() : License
     {
         try {
             $response = $this->session->request('GET', self::PATH);
@@ -40,7 +41,7 @@ final class LicenseResource
         return new License((string) $response->getBody());
     }
 
-    public function set(StreamInterface $stream): void
+    public function set(StreamInterface $stream) : void
     {
         $options = [
             'auth' => [$this->session->getUsername(), $this->session->getPassword()],

@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Resource;
 
@@ -15,40 +16,45 @@ use Kynx\Saiku\Client\Entity\Acl;
 use Kynx\Saiku\Client\Entity\File;
 use Kynx\Saiku\Client\Entity\Folder;
 use Kynx\Saiku\Client\Exception\BadResponseException;
-use Kynx\Saiku\Client\Exception\NotFoundException;
 use Kynx\Saiku\Client\Exception\SaikuException;
+
+use function count;
+use function implode;
+use function in_array;
+use function json_encode;
+use function sprintf;
 
 final class RepositoryResource extends AbstractResource
 {
-    const PATH = 'rest/saiku/api/repository/';
-    const PATH_ACL = 'rest/saiku/api/repository/resource/acl/';
-    const PATH_RESOURCE = 'rest/saiku/api/repository/resource/';
+    public const PATH          = 'rest/saiku/api/repository/';
+    public const PATH_ACL      = 'rest/saiku/api/repository/resource/acl/';
+    public const PATH_RESOURCE = 'rest/saiku/api/repository/resource/';
 
     /**
      * Returns file or folder from repository
      *
      * @see https://github.com/OSBI/saiku/pull/690
      */
-    public function get(?string $path = null, bool $contents = false, ?array $types = null): AbstractNode
+    public function get(?string $path = null, bool $contents = false, ?array $types = null) : AbstractNode
     {
         try {
             if ($types === null) {
                 $types = File::getAllFiletypes();
             }
-            $query = [
+            $query    = [
                 'path' => $path,
-                'type' => join(',', $types),
+                'type' => implode(',', $types),
             ];
             $response = $this->session->request('GET', self::PATH, ['query' => $query]);
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if ($response->getStatusCode() == 200) {
+        if ($response->getStatusCode() === 200) {
             $decoded = $this->decodeResponse($response);
-            if ($path && count($decoded) == 1) {
+            if ($path && count($decoded) === 1) {
                 $type = $decoded[0]['type'] ?? AbstractNode::TYPE_FOLDER;
-                $node = $type == AbstractNode::TYPE_FOLDER ? new Folder($decoded[0]) : new File($decoded[0]);
+                $node = $type === AbstractNode::TYPE_FOLDER ? new Folder($decoded[0]) : new File($decoded[0]);
             } else {
                 $node = new Folder(['path' => $path ?? '/', 'repoObjects' => $decoded]);
             }
@@ -64,20 +70,20 @@ final class RepositoryResource extends AbstractResource
         ), $response);
     }
 
-    public function getResource(string $path): string
+    public function getResource(string $path) : string
     {
         try {
-            $query = ['file' => $path];
+            $query    = ['file' => $path];
             $response = $this->session->request('GET', self::PATH_RESOURCE, ['query' => $query]);
         } catch (ServerException $e) {
             // @todo Report upstream
             // Saiku throws a 500 error when the resource does not exist :(
-            throw new SaikuException("Error getting '$path'. Are you sure it exists?", $e->getCode(), $e);
+            throw new SaikuException(sprintf("Error getting '%s'. Are you sure it exists?", $path), $e->getCode(), $e);
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if ($response->getStatusCode() == 200) {
+        if ($response->getStatusCode() === 200) {
             return (string) $response->getBody();
         }
 
@@ -88,7 +94,7 @@ final class RepositoryResource extends AbstractResource
         ), $response);
     }
 
-    public function storeResource(AbstractNode $resource): void
+    public function storeResource(AbstractNode $resource) : void
     {
         $params = ['file' => $resource->getPath()];
         if ($resource instanceof File) {
@@ -102,7 +108,7 @@ final class RepositoryResource extends AbstractResource
         }
     }
 
-    public function deleteResource(AbstractNode $resource): void
+    public function deleteResource(AbstractNode $resource) : void
     {
         $query = ['file' => $resource->getPath()];
         try {
@@ -115,18 +121,20 @@ final class RepositoryResource extends AbstractResource
     /**
      * Returns ACL for node at `$path`, or `null` if none set
      */
-    public function getAcl(string $path): ?Acl
+    public function getAcl(string $path) : ?Acl
     {
         $query = ['file' => $path];
         try {
             $response = $this->session->request('GET', self::PATH_ACL, ['query' => $query]);
         } catch (GuzzleException $e) {
             // @todo Report upstream
+            // phpcs:disable
             // non-existent paths throw 500 with "You dont have permission to retrieve ACL for file: /homes/home:admin/nothere.saiku"
+            // phpcs:enable
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if ($response->getStatusCode() == 200) {
+        if ($response->getStatusCode() === 200) {
             $item = $this->decodeResponse($response);
             if (isset($item['type'])) {
                 return new Acl($item);
@@ -136,11 +144,11 @@ final class RepositoryResource extends AbstractResource
         throw new BadResponseException(sprintf("Couldn't get ACL at path '%s'", $path), $response);
     }
 
-    public function setAcl(string $path, Acl $acl): void
+    public function setAcl(string $path, Acl $acl) : void
     {
         $params = [
             'file' => $path,
-            'acl' => json_encode($acl->toArray()),
+            'acl'  => json_encode($acl->toArray()),
         ];
 
         try {
@@ -152,7 +160,7 @@ final class RepositoryResource extends AbstractResource
         }
     }
 
-    private function populateFolderContents(Folder $folder): void
+    private function populateFolderContents(Folder $folder) : void
     {
         $contentType = [File::FILETYPE_LICENSE, File::FILETYPE_REPORT];
         foreach ($folder->getRepoObjects() as $object) {

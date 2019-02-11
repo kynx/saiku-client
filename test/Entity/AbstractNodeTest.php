@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Entity;
 
@@ -24,7 +25,7 @@ class AbstractNodeTest extends TestCase
      */
     public function testGetInstanceConsumesJson()
     {
-        $actual = AbstractNode::getInstance('{"type":"'. AbstractNode::TYPE_FILE . '"}');
+        $actual = AbstractNode::getInstance('{"type":"' . AbstractNode::TYPE_FILE . '"}');
         $this->assertInstanceOf(File::class, $actual);
     }
 
@@ -33,7 +34,7 @@ class AbstractNodeTest extends TestCase
      */
     public function testGetInstanceConsumesArray()
     {
-        $actual = AbstractNode::getInstance(["type" => AbstractNode::TYPE_FILE]);
+        $actual = AbstractNode::getInstance(['type' => AbstractNode::TYPE_FILE]);
         $this->assertInstanceOf(File::class, $actual);
     }
 
@@ -60,7 +61,7 @@ class AbstractNodeTest extends TestCase
      */
     public function testGetInstanceReturnsFolder()
     {
-        $actual = AbstractNode::getInstance(["type" => AbstractNode::TYPE_FOLDER]);
+        $actual = AbstractNode::getInstance(['type' => AbstractNode::TYPE_FOLDER]);
         $this->assertInstanceOf(Folder::class, $actual);
     }
 
@@ -69,7 +70,7 @@ class AbstractNodeTest extends TestCase
      */
     public function testGetInstanceReturnsFile()
     {
-        $actual = AbstractNode::getInstance(["type" => AbstractNode::TYPE_FILE]);
+        $actual = AbstractNode::getInstance(['type' => AbstractNode::TYPE_FILE]);
         $this->assertInstanceOf(File::class, $actual);
     }
 
@@ -78,7 +79,7 @@ class AbstractNodeTest extends TestCase
      */
     public function testExtractSetsType()
     {
-        $instance = $this->getInstance();
+        $instance  = $this->getInstance();
         $extracted = $instance->toArray();
         $this->assertEquals(AbstractNode::TYPE_FILE, $extracted['type']);
     }
@@ -88,7 +89,7 @@ class AbstractNodeTest extends TestCase
      */
     public function testExtractSetsFolderType()
     {
-        $instance = new Folder();
+        $instance  = new Folder();
         $extracted = $instance->toArray();
         $this->assertEquals(AbstractNode::TYPE_FOLDER, $extracted['type']);
     }
@@ -137,6 +138,7 @@ class AbstractNodeTest extends TestCase
 
     private function getInstance(array $properties = [])
     {
-        return new class($properties) extends AbstractNode {};
+        return new class($properties) extends AbstractNode {
+        };
     }
 }

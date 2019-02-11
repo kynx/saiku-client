@@ -1,5 +1,8 @@
 # saiku-client
 
+[![Build Status](https://travis-ci.org/kynx/saiku-client.svg?branch=master)](https://travis-ci.org/kynx/saiku-client)
+[![Coverage Status](https://coveralls.io/repos/github/kynx/saiku-client/badge.svg?branch=master)](https://coveralls.io/github/kynx/saiku-client?branch=master)
+
 A PHP Client for [Saiku]'s REST API.
 
 This client works with the Saiku Standalone server. Currently it is tested against version 3.17+, though some 

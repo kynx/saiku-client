@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Resource;
 
@@ -21,7 +22,7 @@ final class SessionResource
 {
     use ExceptionTrait;
 
-    const PATH = 'rest/saiku/session';
+    public const PATH = 'rest/saiku/session';
 
     private $client;
     private $username;
@@ -32,7 +33,7 @@ final class SessionResource
         $this->client = $client;
     }
 
-    public function getUsername(): ?string
+    public function getUsername() : ?string
     {
         return $this->username;
     }
@@ -43,7 +44,7 @@ final class SessionResource
         $this->username = $username;
     }
 
-    public function getPassword(): ?string
+    public function getPassword() : ?string
     {
         return $this->password;
     }
@@ -60,10 +61,10 @@ final class SessionResource
      * @throws LicenseException
      * @throws SaikuException
      */
-    public function get(): void
+    public function get() : void
     {
         if (! ($this->username && $this->password)) {
-            throw new BadLoginException("Username and password must be set");
+            throw new BadLoginException('Username and password must be set');
         }
 
         try {
@@ -89,7 +90,7 @@ final class SessionResource
      *
      * @throws SaikuException
      */
-    public function clear(): void
+    public function clear() : void
     {
         $this->getCookieJar()->clear();
 
@@ -107,7 +108,7 @@ final class SessionResource
      *
      * @throws GuzzleException
      */
-    public function request(string $method, string $url, array $options = [], int $count = 0): ResponseInterface
+    public function request(string $method, string $url, array $options = [], int $count = 0) : ResponseInterface
     {
         if (empty($this->getCookieJar()->toArray())) {
             $this->get();
@@ -132,7 +133,7 @@ final class SessionResource
         return $response;
     }
 
-    private function getCookieJar(): CookieJarInterface
+    private function getCookieJar() : CookieJarInterface
     {
         return $this->client->getConfig('cookies');
     }

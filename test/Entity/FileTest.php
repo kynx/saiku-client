@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Entity;
 
@@ -16,9 +17,7 @@ use PHPUnit\Framework\TestCase;
  */
 class FileTest extends TestCase
 {
-    /**
-     * @var File
-     */
+    /** @var File */
     private $file;
 
     protected function setUp()
@@ -32,8 +31,8 @@ class FileTest extends TestCase
      */
     public function testSetContent()
     {
-        $this->file->setContent("some content");
-        $this->assertEquals("some content", $this->file->getContent());
+        $this->file->setContent('some content');
+        $this->assertEquals('some content', $this->file->getContent());
     }
 
     /**
@@ -45,7 +44,7 @@ class FileTest extends TestCase
             File::FILETYPE_DATASOURCE,
             File::FILETYPE_LICENSE,
             File::FILETYPE_REPORT,
-            File::FILETYPE_SCHEMA
+            File::FILETYPE_SCHEMA,
         ];
         $this->assertEquals($expected, File::getAllFiletypes());
     }

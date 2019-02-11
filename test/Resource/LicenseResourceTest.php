@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Resource;
 
@@ -17,18 +18,18 @@ use Kynx\Saiku\Client\Resource\LicenseResource;
 use Kynx\Saiku\Client\Resource\SessionResource;
 use KynxTest\Saiku\Client\AbstractTest;
 
+use function base64_encode;
+use function fopen;
+use function fwrite;
+
 /**
  * @coversDefaultClass \Kynx\Saiku\Client\Resource\LicenseResource
  */
 final class LicenseResourceTest extends AbstractTest
 {
-    /**
-     * @var LicenseResource
-     */
+    /** @var LicenseResource */
     private $license;
-    /**
-     * @var SessionResource
-     */
+    /** @var SessionResource */
     private $session;
 
     protected function setUp()
@@ -57,9 +58,9 @@ final class LicenseResourceTest extends AbstractTest
         }';
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(200, [], $license)
+            new Response(200, [], $license),
         ]);
-        $actual = $this->license->get();
+        $actual   = $this->license->get();
         $expected = new License($license);
         $this->assertEquals($expected, $actual);
     }
@@ -72,7 +73,7 @@ final class LicenseResourceTest extends AbstractTest
         $this->expectException(SaikuException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(500)
+            new Response(500),
         ]);
         $this->license->get();
     }
@@ -83,7 +84,7 @@ final class LicenseResourceTest extends AbstractTest
     public function testSet()
     {
         $this->mockResponses([
-            new Response(200)
+            new Response(200),
         ]);
         $this->license->set($this->getStream('foo'));
         $request = $this->getLastRequest();
@@ -97,11 +98,11 @@ final class LicenseResourceTest extends AbstractTest
     public function testSetSendsAuthorizationHeader()
     {
         $this->mockResponses([
-            new Response(200)
+            new Response(200),
         ]);
         $this->license->set($this->getStream('foo'));
-        $request = $this->getLastRequest();
-        $expected = 'Basic ' . base64_encode($this->session->getUsername() . ":" . $this->session->getPassword());
+        $request  = $this->getLastRequest();
+        $expected = 'Basic ' . base64_encode($this->session->getUsername() . ':' . $this->session->getPassword());
         $this->assertEquals([$expected], $request->getHeader('Authorization'));
     }
 
@@ -112,7 +113,7 @@ final class LicenseResourceTest extends AbstractTest
     {
         $this->expectException(SaikuException::class);
         $this->mockResponses([
-            new Response(500)
+            new Response(500),
         ]);
         $this->license->set($this->getStream('foo'));
     }
@@ -121,15 +122,15 @@ final class LicenseResourceTest extends AbstractTest
     {
         $this->expectException(BadLoginException::class);
         $this->mockResponses([
-            new Response(401)
+            new Response(401),
         ]);
         $this->license->set($this->getStream('foo'));
     }
 
-    private function getStream(string $contents): Stream
+    private function getStream(string $contents) : Stream
     {
         $fh = fopen('php://memory', 'w');
-        fputs($fh, $contents);
+        fwrite($fh, $contents);
         return new Stream($fh);
     }
 }

@@ -1,16 +1,17 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Entity;
 
 use DateTimeImmutable;
-use Kynx\Saiku\Client\Exception\EntityException;
 use Kynx\Saiku\Client\Entity\License;
+use Kynx\Saiku\Client\Exception\EntityException;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -18,9 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 class LicenseTest extends TestCase
 {
-    /**
-     * @var License
-     */
+    /** @var License */
     private $license;
 
     protected function setUp()
@@ -33,7 +32,7 @@ class LicenseTest extends TestCase
      */
     public function testHydratePopulatesExpiration()
     {
-        $json = '{"expiration":"2019-01-28T14:03:39+00:00"}';
+        $json   = '{"expiration":"2019-01-28T14:03:39+00:00"}';
         $actual = new License($json);
         $this->assertInstanceOf(DateTimeImmutable::class, $actual->getExpiration());
     }
@@ -43,7 +42,7 @@ class LicenseTest extends TestCase
      */
     public function testHydratesPopulatesNullExpiration()
     {
-        $json = '{"expiration":""}';
+        $json   = '{"expiration":""}';
         $actual = new License($json);
         $this->assertNull($actual->getExpiration());
     }
@@ -63,11 +62,11 @@ class LicenseTest extends TestCase
      */
     public function testExtractFormatsExpiration()
     {
-        $expiration = new DateTimeImmutable("2019-01-28T14:03:39+00:00");
-        $license = new License();
+        $expiration = new DateTimeImmutable('2019-01-28T14:03:39+00:00');
+        $license    = new License();
         $license->setExpiration($expiration);
         $actual = $license->toArray();
-        $this->assertEquals("2019-01-28T14:03:39+00:00", $actual['expiration']);
+        $this->assertEquals('2019-01-28T14:03:39+00:00', $actual['expiration']);
     }
 
     /**
@@ -76,7 +75,7 @@ class LicenseTest extends TestCase
      */
     public function testSetExpiration()
     {
-        $expiration = new DateTimeImmutable("2019-01-28T14:03:39+00:00");
+        $expiration = new DateTimeImmutable('2019-01-28T14:03:39+00:00');
         $this->license->setExpiration($expiration);
         $this->assertEquals($expiration, $this->license->getExpiration());
     }

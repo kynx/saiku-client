@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace Kynx\Saiku\Client;
 
@@ -20,6 +21,11 @@ use Kynx\Saiku\Client\Resource\SessionResource;
 use Kynx\Saiku\Client\Resource\UserResource;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+
+use function get_class;
+use function in_array;
+use function strpos;
+use function substr;
 
 /**
  * Client for Saiku's REST API
@@ -39,31 +45,31 @@ final class Saiku
     public function __construct(ClientInterface $client)
     {
         if (! $client->getConfig('base_uri')) {
-            throw new SaikuException("Client must have base_uri configured");
+            throw new SaikuException('Client must have base_uri configured');
         }
         if (! $client->getConfig('cookies') instanceof CookieJarInterface) {
-            throw new SaikuException("Client must have cookies configured");
+            throw new SaikuException('Client must have cookies configured');
         }
 
-        $this->client = $client;
+        $this->client  = $client;
         $this->session = new SessionResource($this->client);
     }
 
     /**
      * Returns new instance with given cookie jar injected
      */
-    public function withCookieJar(CookieJarInterface $cookieJar): Saiku
+    public function withCookieJar(CookieJarInterface $cookieJar) : Saiku
     {
-        $options = $this->client->getConfig();
+        $options            = $this->client->getConfig();
         $options['cookies'] = $cookieJar;
-        $class = get_class($this->client);
+        $class              = get_class($this->client);
         return new self(new $class($options));
     }
 
     /**
      * Sets Saiku username to use for connection
      */
-    public function setUsername(string $username): Saiku
+    public function setUsername(string $username) : Saiku
     {
         $this->session->setUsername($username);
         return $this;
@@ -72,7 +78,7 @@ final class Saiku
     /**
      * Sets Saiku password to use for connection
      */
-    public function setPassword(string $password): Saiku
+    public function setPassword(string $password) : Saiku
     {
         $this->session->setPassword($password);
         return $this;
@@ -81,7 +87,7 @@ final class Saiku
     /**
      * Logs in to saiku server
      */
-    public function login(): void
+    public function login() : void
     {
         $this->session->get();
     }
@@ -89,7 +95,7 @@ final class Saiku
     /**
      * Logs out from saiku server
      */
-    public function logout(): void
+    public function logout() : void
     {
         $this->session->clear();
     }
@@ -98,9 +104,9 @@ final class Saiku
      * Returns response that results from proxying given request to saiku server
      * @throws SaikuException
      */
-    public function proxy(ServerRequestInterface $request): ResponseInterface
+    public function proxy(ServerRequestInterface $request) : ResponseInterface
     {
-        $path = $request->getUri()->getPath();
+        $path   = $request->getUri()->getPath();
         $method = $request->getMethod();
 
         if (strpos($path, '/') === 0) {
@@ -122,7 +128,7 @@ final class Saiku
     /**
      * Returns datasource resource
      */
-    public function datasource(): DatasourceResource
+    public function datasource() : DatasourceResource
     {
         if (! $this->datasource) {
             $this->datasource = new DatasourceResource($this->session);
@@ -133,7 +139,7 @@ final class Saiku
     /**
      * Returns license resource
      */
-    public function license(): LicenseResource
+    public function license() : LicenseResource
     {
         if (! $this->license) {
             $this->license = new LicenseResource($this->session, $this->client);
@@ -144,7 +150,7 @@ final class Saiku
     /**
      * Returns repository resource
      */
-    public function repository(): RepositoryResource
+    public function repository() : RepositoryResource
     {
         if (! $this->repository) {
             $this->repository = new RepositoryResource($this->session);
@@ -155,7 +161,7 @@ final class Saiku
     /**
      * Returns schema resource
      */
-    public function schema(): SchemaResource
+    public function schema() : SchemaResource
     {
         if (! $this->schema) {
             $this->schema = new SchemaResource($this->session);
@@ -166,7 +172,7 @@ final class Saiku
     /**
      * Returns user resource
      */
-    public function user(): UserResource
+    public function user() : UserResource
     {
         if (! $this->user) {
             $this->user = new UserResource($this->session);

@@ -1,15 +1,18 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Integration;
 
 use Kynx\Saiku\Client\Entity\Datasource;
 use Kynx\Saiku\Client\Resource\DatasourceResource;
+
+use function array_reduce;
 
 /**
  * @group integration
@@ -17,11 +20,9 @@ use Kynx\Saiku\Client\Resource\DatasourceResource;
  */
 class DatasourceResourceTest extends AbstractIntegrationTest
 {
-    const DATASOURCE_NAME = 'foodmart';
+    public const DATASOURCE_NAME = 'foodmart';
 
-    /**
-     * @var DatasourceResource
-     */
+    /** @var DatasourceResource */
     private $datasource;
 
     protected function setUp()
@@ -52,8 +53,8 @@ class DatasourceResourceTest extends AbstractIntegrationTest
 
         $created = $this->getDatasource('foo');
         $this->assertInstanceOf(Datasource::class, $created);
-        $expected = $datasource->toArray();
-        $actual = $created->toArray();
+        $expected       = $datasource->toArray();
+        $actual         = $created->toArray();
         $expected['id'] = $actual['id'];
         $this->assertEquals($expected, $actual);
     }
@@ -75,10 +76,10 @@ class DatasourceResourceTest extends AbstractIntegrationTest
         $this->assertNull($actual);
     }
 
-    private function getDatasource(string $connectionName): ?Datasource
+    private function getDatasource(string $connectionName) : ?Datasource
     {
         return array_reduce($this->datasource->getAll(), function ($carry, Datasource $ds) use ($connectionName) {
-            return $ds->getConnectionName() == $connectionName ? $ds : $carry;
+            return $ds->getConnectionName() === $connectionName ? $ds : $carry;
         }, null);
     }
 }

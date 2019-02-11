@@ -1,16 +1,16 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Resource;
 
 use GuzzleHttp\Cookie\SetCookie;
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Psr7\ServerRequest;
 use Kynx\Saiku\Client\Exception\BadLoginException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\SessionResource;
@@ -22,9 +22,7 @@ use KynxTest\Saiku\Client\AbstractTest;
  */
 class SessionResourceTest extends AbstractTest
 {
-    /**
-     * @var SessionResource
-     */
+    /** @var SessionResource */
     private $session;
 
     protected function setUp()
@@ -75,7 +73,7 @@ class SessionResourceTest extends AbstractTest
     public function testGetAuthenticationFailedThrowsBadLoginException()
     {
         $this->expectException(BadLoginException::class);
-        $this->mockResponses([new Response(500, [], "Authentication failed for: admin")]);
+        $this->mockResponses([new Response(500, [], 'Authentication failed for: admin')]);
         $this->session->setPassword('baz');
         $this->session->get();
     }
@@ -121,17 +119,18 @@ class SessionResourceTest extends AbstractTest
         $this->mockResponses([
             new Response(401),
             $this->getLoginSuccessResponse(),
-            new Response(401)
+            new Response(401),
         ]);
         $this->session->request('GET', UserResource::PATH);
     }
+
     /**
      * @covers ::clear
      */
     public function testClearClearsCookies()
     {
         $this->mockResponses([
-            new Response(200)
+            new Response(200),
         ]);
 
         $cookie = new SetCookie();
@@ -150,7 +149,7 @@ class SessionResourceTest extends AbstractTest
         $this->expectException(SaikuException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(404)
+            new Response(404),
         ]);
         $this->session->get();
         $this->session->clear();

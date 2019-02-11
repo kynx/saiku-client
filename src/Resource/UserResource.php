@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Resource;
 
@@ -15,16 +16,19 @@ use Kynx\Saiku\Client\Exception\BadResponseException;
 use Kynx\Saiku\Client\Exception\EntityException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 
+use function array_map;
+use function sprintf;
+
 final class UserResource extends AbstractResource
 {
-    const PATH = 'rest/saiku/admin/users/';
+    public const PATH = 'rest/saiku/admin/users/';
 
     /**
      * Returns array of users
      *
      * @return User[]
      */
-    public function getAll(): array
+    public function getAll() : array
     {
         try {
             $response = $this->session->request('GET', self::PATH);
@@ -32,12 +36,12 @@ final class UserResource extends AbstractResource
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if ($response->getStatusCode() == '200') {
+        if ($response->getStatusCode() === 200) {
             return array_map(function (array $properties) {
                 return new User($properties);
             }, $this->decodeResponse($response));
         } else {
-            throw new BadResponseException(sprintf("Error getting users"), $response);
+            throw new BadResponseException(sprintf('Error getting users'), $response);
         }
     }
 
@@ -46,14 +50,14 @@ final class UserResource extends AbstractResource
      *
      * @throws SaikuException
      */
-    public function get(int $id): ?User
+    public function get(int $id) : ?User
     {
         try {
             $response = $this->session->request('GET', self::PATH . $id);
         } catch (ServerException $e) {
             // @fixme Report upstream
             // saiku throws a 500 error when user does not exist :(
-            if ($e->getCode() == '500') {
+            if ($e->getCode() === 500) {
                 return null;
             }
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
@@ -61,7 +65,7 @@ final class UserResource extends AbstractResource
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if ($response->getStatusCode() == '200') {
+        if ($response->getStatusCode() === 200) {
             return new User((string) $response->getBody());
         } else {
             throw new BadResponseException(sprintf("Error getting user id '%s':", $id), $response);
@@ -73,7 +77,7 @@ final class UserResource extends AbstractResource
      *
      * @throws SaikuException
      */
-    public function create(User $user): User
+    public function create(User $user) : User
     {
         $data = $user->toArray();
         unset($data['id']);
@@ -89,7 +93,7 @@ final class UserResource extends AbstractResource
     /**
      * Updates user without updating password, returning updated user
      */
-    public function update(User $user): User
+    public function update(User $user) : User
     {
         $user = clone $user;
         $user->setPassword('');
@@ -102,10 +106,10 @@ final class UserResource extends AbstractResource
      *
      * @throws SaikuException
      */
-    public function updatePassword(User $user): User
+    public function updatePassword(User $user) : User
     {
         if (! $user->getId()) {
-            throw new EntityException("Can not update: user has no ID");
+            throw new EntityException('Can not update: user has no ID');
         }
 
         $data = $user->toArray();
@@ -115,7 +119,7 @@ final class UserResource extends AbstractResource
             // @todo Report upstream
             // Saiku has probably thrown a NullPointerException because the user doesn't exist. Would be nice
             // if it were a bit more specific
-            throw new SaikuException("Error updating user. Are you sure they exist?", $e->getCode(), $e);
+            throw new SaikuException('Error updating user. Are you sure they exist?', $e->getCode(), $e);
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
@@ -126,7 +130,7 @@ final class UserResource extends AbstractResource
     /**
      * Deletes user
      */
-    public function delete(User $user): void
+    public function delete(User $user) : void
     {
         try {
             // @todo Report upstream
@@ -135,7 +139,7 @@ final class UserResource extends AbstractResource
         } catch (ServerException $e) {
             // @todo Report upstream
             // saiku throws 500 error when user does not exist :(
-            if ($e->getCode() == 500) {
+            if ($e->getCode() === 500) {
                 return;
             }
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);

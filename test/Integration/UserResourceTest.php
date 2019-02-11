@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Integration;
 
@@ -12,18 +13,18 @@ use Kynx\Saiku\Client\Entity\User;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\UserResource;
 
+use function array_reduce;
+
 /**
  * @group integration
  * @coversNothing
  */
 final class UserResourceTest extends AbstractIntegrationTest
 {
-    const ADMIN_ID = 1;
-    const INVALID_USER_ID = 99999999;
+    public const ADMIN_ID        = 1;
+    public const INVALID_USER_ID = 99999999;
 
-    /**
-     * @var UserResource
-     */
+    /** @var UserResource */
     private $user;
 
     protected function setUp()
@@ -74,7 +75,7 @@ final class UserResourceTest extends AbstractIntegrationTest
     {
         $user = $this->user->get(self::ADMIN_ID);
         $this->assertInstanceOf(User::class, $user);
-        $oldEmail = $user->getEmail();
+        $oldEmail    = $user->getEmail();
         $oldPassword = $user->getPassword();
         $this->assertNotEquals('another@example.com', $oldEmail);
         $user->setEmail('another@example.com');
@@ -100,23 +101,23 @@ final class UserResourceTest extends AbstractIntegrationTest
 
     public function testUpdateWithPassword()
     {
-        $user = $this->getUser("smith");
+        $user = $this->getUser('smith');
         $this->assertInstanceOf(User::class, $user);
         $oldPassword = $user->getPassword();
         $user->setPassword('foo');
 
         $actual = $this->user->updatePassword($user);
-        $this->assertEquals("smith", $actual->getUsername());
+        $this->assertEquals('smith', $actual->getUsername());
         $this->assertStringStartsWith('$2a$', $actual->getPassword());
         $this->assertNotEquals($oldPassword, $actual->getPassword());
     }
 
     public function testDelete()
     {
-        $user = $this->getUser("smith");
+        $user = $this->getUser('smith');
         $this->assertInstanceOf(User::class, $user);
         $this->user->delete($user);
-        $actual = $this->getUser("smith");
+        $actual = $this->getUser('smith');
         $this->assertNull($actual);
     }
 
@@ -128,10 +129,10 @@ final class UserResourceTest extends AbstractIntegrationTest
         $this->assertTrue(true);
     }
 
-    private function getUser(string $username): ?User
+    private function getUser(string $username) : ?User
     {
         return array_reduce($this->user->getAll(), function ($carry, User $user) use ($username) {
-            return $user->getUsername() == $username ? $user : $carry;
+            return $user->getUsername() === $username ? $user : $carry;
         }, null);
     }
 }

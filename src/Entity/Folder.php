@@ -1,24 +1,23 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Entity;
 
 final class Folder extends AbstractNode
 {
-    /**
-     * @var AbstractNode[]
-     */
+    /** @var AbstractNode[] */
     protected $repoObjects = [];
 
     /**
      * @return AbstractNode[]
      */
-    public function getRepoObjects(): array
+    public function getRepoObjects() : array
     {
         return $this->repoObjects;
     }
@@ -26,15 +25,15 @@ final class Folder extends AbstractNode
     /**
      * @param AbstractNode[] $repoObjects
      */
-    public function setRepoObjects(array $repoObjects): void
+    public function setRepoObjects(array $repoObjects) : void
     {
         $this->repoObjects = $repoObjects;
     }
 
-    protected function hydrate(array $properties): void
+    protected function hydrate(array $properties) : void
     {
         $repoObjects = $properties['repoObjects'] ?? [];
-        foreach($repoObjects as $objectProperties) {
+        foreach ($repoObjects as $objectProperties) {
             $this->repoObjects[] = self::getInstance($objectProperties);
         }
         unset($properties['repoObjects']);
@@ -42,11 +41,11 @@ final class Folder extends AbstractNode
         parent::hydrate($properties);
     }
 
-    protected function extract(): array
+    protected function extract() : array
     {
         $extracted = parent::extract();
 
-        /* @var self $repoObject */
+        /** @var self $repoObject */
         foreach ($extracted['repoObjects'] as $i => $repoObject) {
             $extracted['repoObjects'][$i] = $repoObject->toArray();
         }

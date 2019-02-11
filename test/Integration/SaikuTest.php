@@ -1,10 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Integration;
 
@@ -20,9 +21,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class SaikuTest extends AbstractIntegrationTest
 {
-    /**
-     * @var Saiku
-     */
+    /** @var Saiku */
     private $saiku;
 
     protected function setUp()
@@ -46,7 +45,7 @@ final class SaikuTest extends AbstractIntegrationTest
         $this->assertEquals(200, $actual->getStatusCode());
     }
 
-    private function getInvalidSessionCookie(): SetCookie
+    private function getInvalidSessionCookie() : SetCookie
     {
         $cookie = new SetCookie();
         $cookie->setName('JSESSIONID');

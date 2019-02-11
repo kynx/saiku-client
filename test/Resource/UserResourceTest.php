@@ -1,28 +1,28 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Resource;
 
 use GuzzleHttp\Psr7\Response;
 use Kynx\Saiku\Client\Entity\User;
 use Kynx\Saiku\Client\Exception\BadResponseException;
-use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\UserResource;
 use KynxTest\Saiku\Client\AbstractTest;
+
+use function json_decode;
 
 /**
  * @coversDefaultClass \Kynx\Saiku\Client\Resource\UserResource
  */
 class UserResourceTest extends AbstractTest
 {
-    /**
-     * @var UserResource
-     */
+    /** @var UserResource */
     private $user;
 
     protected function setUp()
@@ -46,7 +46,7 @@ class UserResourceTest extends AbstractTest
         }';
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(200, ['Content-Type' => 'application/json'], $user)
+            new Response(200, ['Content-Type' => 'application/json'], $user),
         ]);
 
         $actual = $this->user->get(1);
@@ -61,7 +61,7 @@ class UserResourceTest extends AbstractTest
     {
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(500)
+            new Response(500),
         ]);
         $actual = $this->user->get(9999);
         $this->assertNull($actual);
@@ -75,7 +75,7 @@ class UserResourceTest extends AbstractTest
         $this->expectException(BadResponseException::class);
         $this->mockResponses([
             $this->getLoginSuccessResponse(),
-            new Response(204)
+            new Response(204),
         ]);
         $this->user->get(1);
     }

@@ -1,17 +1,19 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * @author   : matt@kynx.org
  * @copyright: 2019 Matt Kynaston
  * @license  : MIT
  */
-declare(strict_types=1);
 
 namespace KynxTest\Saiku\Client\Integration;
 
 use Kynx\Saiku\Client\Entity\Schema;
-use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\RepositoryResource;
 use Kynx\Saiku\Client\Resource\SchemaResource;
+
+use function array_reduce;
 
 /**
  * @group integration
@@ -21,10 +23,10 @@ final class SchemaResourceTest extends AbstractIntegrationTest
 {
     private const NAME = 'foodmart4.xml';
     private const PATH = '/datasources/foodmart4.xml';
-    private const XML = '<?xml version=\'1.0\'?><Schema name=\'Global Earthquakes\' metamodelVersion=\'4.0\'></Schema>';
-    /**
-     * @var SchemaResource
-     */
+    // phpcs:disable
+    private const XML  = '<?xml version=\'1.0\'?><Schema name=\'Global Earthquakes\' metamodelVersion=\'4.0\'></Schema>';
+    // phpcs:enable
+    /** @var SchemaResource */
     private $schema;
 
     protected function setUp()
@@ -51,10 +53,10 @@ final class SchemaResourceTest extends AbstractIntegrationTest
             ->setXml(self::XML);
         $this->schema->create($schema);
 
-        $created = $this->getSchema('foo.xml');
-        $expected = $schema->toArray();
+        $created         = $this->getSchema('foo.xml');
+        $expected        = $schema->toArray();
         $expected['xml'] = null; // we don't get this back in the response
-        $actual = $created->toArray();
+        $actual          = $created->toArray();
         $this->assertEquals($expected, $actual);
         $xml = $this->getContent('/datasources/foo.xml');
         $this->assertEquals(self::XML, $xml);
@@ -72,6 +74,7 @@ final class SchemaResourceTest extends AbstractIntegrationTest
         $this->assertEquals(self::XML, $xml);
     }
 
+// phpcs:disable
 //    Unlike just about every other service, updating a non-existent schema creates a new one
 //    public function testUpdateNonExistentThrowsException()
 //    {
@@ -83,6 +86,7 @@ final class SchemaResourceTest extends AbstractIntegrationTest
 //
 //        $this->schema->update($schema);
 //    }
+// phpcs:enable
 
     public function testDelete()
     {
@@ -102,14 +106,14 @@ final class SchemaResourceTest extends AbstractIntegrationTest
         $this->assertTrue(true);
     }
 
-    private function getSchema(string $name): ?Schema
+    private function getSchema(string $name) : ?Schema
     {
         return array_reduce($this->schema->getAll(), function ($carry, Schema $schema) use ($name) {
-            return $schema->getName() == $name ? $schema : $carry;
+            return $schema->getName() === $name ? $schema : $carry;
         }, null);
     }
 
-    private function getContent($path): string
+    private function getContent($path) : string
     {
         $repo = new RepositoryResource($this->session);
         return $repo->getResource($path);
