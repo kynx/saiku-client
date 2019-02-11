@@ -71,21 +71,21 @@ $saiku = new Saiku($client);
 
 The `proxy()` method takes a PSR-7 [ServerRequestInterface] and passes it to Saiku, logging in if needed. It returns a 
 [ResponseInterface] suitable for outputting to the browser. Use this if you want your application to handle requests 
-from the Saiku UI but handle authentication itself, without the need for a real SSO integration.
+from the Saiku UI but want manage authentication, without the need for a real SSO integration.
 
 There are a couple of things to keep in mind when you use this. There will be an inevitable performance hit from 
-sticking your application between the browser and the Saiku server. And you will will want to use a custom cookie jar to 
+sticking your application between the browser and the Saiku server. And you will want to use a custom cookie jar to 
 avoid repeated logins. But, depending on your setup, the session cookie jar above may not be the best choice.
 
 The Saiku UI is a single-page application. Its JavaScript makes multiple asynchronous requests. By their nature, PHP 
-[sessions block] until they are closed: if you use the `SessionCookieJar`, requests from the application will be
+sessions [block] until they are closed: if you use the `SessionCookieJar`, requests from the application will be
 processed sequentially, impacting performance. There are a couple of workarounds:
 
 * Implement a different storage mechanism for the cookie. This isn't difficult - see my [expressive-guzzle-cookiejar] 
   for ideas.
 * If you are using Memcached for session storage, consider switching off [memcached.sess_locking]. Be aware of the 
   implications on any other session-related activity your application may perform.
-* If you're using the Redis session save handler, it doesn't lock by default.
+* Using the Redis session save handler: it doesn't lock (by default).
 * Keep the sesson open for the shortest possible time. 
 
 
@@ -150,14 +150,18 @@ To avoid constantly uploading the license to the docker image, copy your license
 and it will be loaded as needed by the test framework. 
 
 If you're not using the docker image, copy [phpunit.xml.dist] to `phpunit.xml` and modify the `SAIKU_*` vars to match 
-your environment. Then include the "integration" group when running the tests:
+your environment. You will need to ensure the BCrypted password in the backup are not re-hashed by Saiku. Details on 
+editing your `saiku-beans.xml` to do this are in [this PR]. 
+
+Now include the "integration" group when running the tests:
 
 ```
 vendor/bin/phpunit --group integration
 ```
 
 As noted, the integration tests rely on [saiku-backup], which in turn depends on this library to restore the backup. If 
-it hits problems restoring the backup there will be all kinds of strange failures. Kill the container and start again.
+it hits problems restoring the backup there will be all kinds of strange failures. Kill the container, start your 
+debugger and dive in.
 
 
 
@@ -167,7 +171,7 @@ it hits problems restoring the backup there will be all kinds of strange failure
 [custom cookie jar]: http://docs.guzzlephp.org/en/stable/request-options.html#cookies
 [ServerRequestInterface]: https://www.php-fig.org/psr/psr-7/#321-psrhttpmessageserverrequestinterface
 [ResponseInterface]: https://www.php-fig.org/psr/psr-7/#33-psrhttpmessageresponseinterface
-[sessions block]: https://ma.ttias.be/php-session-locking-prevent-sessions-blocking-in-requests/
+[block]: https://ma.ttias.be/php-session-locking-prevent-sessions-blocking-in-requests/
 [expressive-guzzle-cookiejar]: https://github.com/kynx/expressive-guzzle-cookiejar
 [memcached.sess_locking]: http://php.net/manual/en/memcached.configuration.php#ini.memcached.sess-locking
 [upstream]: https://github.com/OSBI/saiku
@@ -176,3 +180,4 @@ it hits problems restoring the backup there will be all kinds of strange failure
 [evaluation license]: https://licensing.meteorite.bi
 [Saiku User Group]: https://groups.google.com/a/saiku.meteorite.bi/forum/#!forum/user
 [phpunit.xml.dist]: ./phpunit.xml.dist
+[this PR]: https://github.com/OSBI/saiku/pull/689

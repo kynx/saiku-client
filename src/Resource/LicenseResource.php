@@ -11,7 +11,6 @@ namespace Kynx\Saiku\Client\Resource;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Kynx\Saiku\Client\Entity\License;
-use Kynx\Saiku\Client\Exception\LicenseException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Psr\Http\Message\StreamInterface;
 
@@ -53,7 +52,7 @@ final class LicenseResource
             if ($this->isUnauthorisedException($e)) {
                 $this->throwBadLoginException($e);
             }
-            throw new LicenseException($e->getMessage(), $e->getCode(), $e);
+            throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }
     }
 }

@@ -96,22 +96,19 @@ final class Saiku
 
     /**
      * Returns response that results from proxying given request to saiku server
-     *
      * @throws SaikuException
      */
     public function proxy(ServerRequestInterface $request): ResponseInterface
     {
         $path = $request->getUri()->getPath();
         $method = $request->getMethod();
-        $options = [];
 
         if (strpos($path, '/') === 0) {
             $path = substr($path, 1);
         }
 
-        if ($method == 'GET') {
-            $options['query'] = $request->getQueryParams();
-        } elseif (in_array($method, ['PATCH', 'POST', 'PUT'])) {
+        $options = ['query' => $request->getQueryParams()];
+        if (in_array($method, ['PATCH', 'POST', 'PUT'])) {
             $options['body'] = $request->getBody();
         }
 

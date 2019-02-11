@@ -74,7 +74,7 @@ final class RepositoryResource extends AbstractResource
         } catch (ServerException $e) {
             // @todo Report upstream
             // Saiku throws a 500 error when the resource does not exist :(
-            throw new SaikuException("Error getting '$path'. Are you sure it exists?'", $e->getCode(), $e);
+            throw new SaikuException("Error getting '$path'. Are you sure it exists?", $e->getCode(), $e);
         } catch (GuzzleException $e) {
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }

@@ -33,9 +33,10 @@ final class DatasourceResource extends AbstractResource
             return array_map(function(array $item) {
                 return new Datasource($item);
             }, $this->decodeResponse($response));
-        } else {
-            throw new BadResponseException("Couldn't get datasources", $response);
         }
+
+        throw new BadResponseException("Couldn't get datasources", $response);
+
     }
 
     public function create(Datasource $datasource): Datasource

@@ -29,13 +29,13 @@ final class LicenseResourceTest extends AbstractIntegrationTest
         $this->license = new LicenseResource($this->session, $this->client);
     }
 
-    public function testGetLicenseReturnsLicense()
+    public function testGet()
     {
         $actual = $this->license->get();
         $this->assertInstanceOf(License::class, $actual);
     }
 
-    public function testSetLicense()
+    public function testSet()
     {
         $fh = fopen($this->getLicenseFile(), 'r');
         $stream = new Stream($fh);
