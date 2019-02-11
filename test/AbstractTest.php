@@ -65,7 +65,7 @@ abstract class AbstractTest extends TestCase
         $cookie = new SetCookie();
         $cookie->setName('JSESSIONID');
         $cookie->setValue($this->sessionId);
-        $cookie->setDomain('http://localhost:8080');
+        $cookie->setDomain('localhost');
         return $cookie;
     }
 
