@@ -1,7 +1,8 @@
 {
   "name": "kynx/saiku-client",
   "description": "Client for Saiku's REST API",
-  "minimum-stability": "stable",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "license": "MIT",
   "authors": [
     {
@@ -33,7 +34,7 @@
     "guzzlehttp/guzzle": "^6.3"
   },
   "require-dev": {
-    "kynx/saiku-backup": "dev-master",
+    "kynx/saiku-backup": "^0.5.2",
     "phpunit/phpunit": "^7.5",
     "webimpress/coding-standard": "dev-master",
     "zendframework/zend-coding-standard": "2.0.x-dev"
@@ -51,11 +52,5 @@
     "test": "phpunit --colors=always",
     "test-coverage": "phpunit --colors=always --coverage-clover clover.xml",
     "upload-coverage": "coveralls -v"
-  },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "git@github.com:kynx/saiku-backup.git"
-    }
-  ]
+  }
 }
