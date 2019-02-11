@@ -36,10 +36,10 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
         $this->repo = new RepositoryResource($this->session);
     }
 
-
     public function testGetReturnsRoot()
     {
         $repo = $this->repo->get();
+        $this->assertInstanceOf(Folder::class, $repo);
         $actual = array_map(function (AbstractNode $node) {
             return $node->getName();
         }, $repo->getRepoObjects());
@@ -50,6 +50,7 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
     public function testGetReturnsPath()
     {
         $repo = $this->repo->get('/homes');
+        $this->assertInstanceOf(Folder::class, $repo);
         $actual = array_map(function (AbstractNode $node) {
             return $node->getName();
         }, $repo->getRepoObjects());
@@ -60,6 +61,7 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
     public function testGetReturnsContent()
     {
         $repo = $this->repo->get(null, true);
+        $this->assertInstanceOf(Folder::class, $repo);
         $flattened = iterator_to_array($this->flattenRepo($repo));
         $this->assertArrayHasKey(self::REPORT_PATH, $flattened);
         $actual = $flattened[self::REPORT_PATH];
@@ -70,12 +72,13 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
     public function testGetFiltersTypes()
     {
         $repo = $this->repo->get(null, false, [File::FILETYPE_SCHEMA]);
+        $this->assertInstanceOf(Folder::class, $repo);
         $flattened = iterator_to_array($this->flattenRepo($repo));
         $this->assertArrayNotHasKey(self::REPORT_PATH, $flattened);
         $this->assertArrayHasKey(self::SCHEMA_PATH, $flattened);
     }
 
-    public function testGetFileReturnsFile()
+    public function testGetReturnsFile()
     {
         $file = $this->repo->get(self::REPORT_PATH);
         $this->assertInstanceOf(File::class, $file);
