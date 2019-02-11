@@ -41,9 +41,9 @@ trait ExceptionTrait
         return false;
     }
 
-    protected function throwBadLoginException(GuzzleException $exception) : void
+    protected function throwBadLoginException(GuzzleException $exception, string $username) : void
     {
-        throw new BadLoginException(sprintf("Couldn't get session for '%s'", $this->username), 401, $exception);
+        throw new BadLoginException(sprintf("Couldn't get session for '%s'", $username), 401, $exception);
     }
 
     protected function throwLicenseException(GuzzleException $exception) : void

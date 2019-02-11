@@ -51,7 +51,7 @@ final class LicenseResource
             $this->client->request('POST', self::PATH, $options);
         } catch (GuzzleException $e) {
             if ($this->isUnauthorisedException($e)) {
-                $this->throwBadLoginException($e);
+                $this->throwBadLoginException($e, $this->session->getUsername());
             }
             throw new SaikuException($e->getMessage(), $e->getCode(), $e);
         }

@@ -76,7 +76,7 @@ final class SessionResource
             ]);
         } catch (GuzzleException $e) {
             if ($this->isUnauthorisedException($e)) {
-                $this->throwBadLoginException($e);
+                $this->throwBadLoginException($e, $this->username);
             }
             if ($this->isLicenseException($e)) {
                 $this->throwLicenseException($e);
@@ -120,7 +120,7 @@ final class SessionResource
             // if our session has expired, try request again...
             if ($this->isUnauthorisedException($e)) {
                 if ($count) {
-                    $this->throwBadLoginException($e);
+                    $this->throwBadLoginException($e, $this->username);
                 }
 
                 $this->get();
