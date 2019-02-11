@@ -75,6 +75,12 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
         $this->assertArrayHasKey(self::SCHEMA_PATH, $flattened);
     }
 
+    public function testGetFileReturnsFile()
+    {
+        $file = $this->repo->get(self::REPORT_PATH);
+        $this->assertInstanceOf(File::class, $file);
+    }
+
     public function testGetResourceReturnsContent()
     {
         $resource = $this->repo->getResource(self::REPORT_PATH);

@@ -25,14 +25,11 @@ final class RepositoryResource extends AbstractResource
     const PATH_RESOURCE = 'rest/saiku/api/repository/resource/';
 
     /**
-     * Returns folder containing entire repository
+     * Returns file or folder from repository
      *
-     * @todo Report upstream
-     * Although the endpoint accepts a "path" parameter, using it always returns an empty response. From what I can tell
-     * this is a bug in org.saiku.repository.JackRabbitRepositoryManager#getRepoObjects that stops returning repository
-     * objects for a folder: folders are not processed because a conditional checks on whether it's a file first.
+     * @see https://github.com/OSBI/saiku/pull/690
      */
-    public function get(?string $path = null, bool $contents = false, ?array $types = null): Folder
+    public function get(?string $path = null, bool $contents = false, ?array $types = null): AbstractNode
     {
         try {
             if ($types === null) {
@@ -50,14 +47,15 @@ final class RepositoryResource extends AbstractResource
         if ($response->getStatusCode() == 200) {
             $decoded = $this->decodeResponse($response);
             if ($path && count($decoded) == 1) {
-                $folder = new Folder($decoded[0]);
+                $type = $decoded[0]['type'] ?? AbstractNode::TYPE_FOLDER;
+                $node = $type == AbstractNode::TYPE_FOLDER ? new Folder($decoded[0]) : new File($decoded[0]);
             } else {
-                $folder = new Folder(['path' => $path ?? '/', 'repoObjects' => $decoded]);
+                $node = new Folder(['path' => $path ?? '/', 'repoObjects' => $decoded]);
             }
             if ($contents) {
-                $this->populateFolderContents($folder);
+                $this->populateFolderContents($node);
             }
-            return $folder;
+            return $node;
         }
 
         throw new BadResponseException(sprintf(
