@@ -27,13 +27,23 @@ class AclTest extends TestCase
     }
 
     /**
-     * @covers ::hydrate
+     * @covers ::extract
      */
-    public function testHydrateNullsEmptyUsers()
+    public function testExtractNullsEmptyUsers()
     {
-        $properties = ['users' => []];
-        $acl        = new Acl($properties);
-        $this->assertNull($acl->getUsers());
+        $acl       = new Acl();
+        $extracted = $acl->toArray();
+        $this->assertNull($extracted['users']);
+    }
+
+    /**
+     * @covers ::extract
+     */
+    public function testExtractNullsEmptyRoles()
+    {
+        $acl       = new Acl();
+        $extracted = $acl->toArray();
+        $this->assertNull($extracted['roles']);
     }
 
     /**
