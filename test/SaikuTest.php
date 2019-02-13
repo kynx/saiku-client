@@ -74,6 +74,9 @@ class SaikuTest extends AbstractTest
         $this->assertNotEquals($this->saiku, $actual);
     }
 
+    /**
+     * @covers ::proxy
+     */
     public function testProxyReturnsResponse()
     {
         $users = '[{
@@ -108,6 +111,34 @@ class SaikuTest extends AbstractTest
         $request = $this->history[0]['request'];
         $uri     = $request->getUri();
         $this->assertEquals('/saiku/foo', $uri->getPath());
+    }
+
+    /**
+     * @covers ::getProxyHeaders
+     */
+    public function testProxySendsHeaders()
+    {
+        $this->cookieJar->setCookie($this->getSessionCookie());
+        $this->mockResponses([
+            new Response(200, ['Content-Type' => 'application/json'], '[]'),
+        ]);
+        $this->saiku->proxy(new ServerRequest('GET', '/foo', ['Accept' => 'application/json']));
+        $request = $this->getLastRequest();
+        $this->assertEquals(['application/json'], $request->getHeader('accept'));
+    }
+
+    /**
+     * @covers ::getProxyHeaders
+     */
+    public function testProxyDoesNotSendCookie()
+    {
+        $this->cookieJar->setCookie($this->getSessionCookie());
+        $this->mockResponses([
+            new Response(200, ['Content-Type' => 'application/json'], '[]'),
+        ]);
+        $this->saiku->proxy(new ServerRequest('GET', '/foo', ['Cookie' => 'foo=bar']));
+        $request = $this->getLastRequest();
+        $this->assertNotEquals(['foo=bar'], $request->getHeader('cookie'));
     }
 
     /**

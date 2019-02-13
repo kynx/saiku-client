@@ -22,7 +22,9 @@ use Kynx\Saiku\Client\Resource\UserResource;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+use function array_map;
 use function get_class;
+use function implode;
 use function in_array;
 use function strpos;
 use function substr;
@@ -113,7 +115,10 @@ final class Saiku
             $path = substr($path, 1);
         }
 
-        $options = ['query' => $request->getQueryParams()];
+        $options = [
+            'query'   => $request->getQueryParams(),
+            'headers' => $this->getProxyHeaders($request),
+        ];
         if (in_array($method, ['PATCH', 'POST', 'PUT'])) {
             $options['body'] = $request->getBody();
         }
@@ -178,5 +183,14 @@ final class Saiku
             $this->user = new UserResource($this->session);
         }
         return $this->user;
+    }
+
+    private function getProxyHeaders(ServerRequestInterface $request)
+    {
+        $headers = $request->getHeaders();
+        unset($headers['Cookie']);
+        return array_map(function (array $header) {
+            return implode(',', $header);
+        }, $headers);
     }
 }
