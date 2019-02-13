@@ -10,7 +10,9 @@ declare(strict_types=1);
 namespace KynxTest\Saiku\Client\Resource;
 
 use GuzzleHttp\Psr7\Response;
+use Kynx\Saiku\Client\Entity\Acl;
 use Kynx\Saiku\Client\Entity\File;
+use Kynx\Saiku\Client\Entity\Folder;
 use Kynx\Saiku\Client\Exception\BadResponseException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\RepositoryResource;
@@ -202,5 +204,100 @@ final class RepositoryResourceTest extends AbstractTest
             new Response(201),
         ]);
         $this->repo->getResource('/foo');
+    }
+
+    /**
+     * @covers ::storeResource
+     */
+    public function testStoreResourceFolder()
+    {
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(200),
+        ]);
+        $folder = new Folder();
+        $folder->setPath('/homes/foo');
+        $this->repo->storeResource($folder);
+        $request = $this->getLastRequest();
+        $this->assertEquals('POST', $request->getMethod());
+        $this->assertEquals('file=%2Fhomes%2Ffoo', (string) $request->getBody());
+    }
+
+    /**
+     * @covers ::storeResource
+     */
+    public function testStoreResourceFile()
+    {
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(200),
+        ]);
+        $file = new File();
+        $file->setPath('/homes/foo');
+        $file->setContent('blah');
+        $this->repo->storeResource($file);
+        $request = $this->getLastRequest();
+        $this->assertEquals('file=%2Fhomes%2Ffoo&content=blah', (string) $request->getBody());
+    }
+
+    /**
+     * @covers ::storeResource
+     */
+    public function testStoreResource500ThrowsException()
+    {
+        $this->expectException(SaikuException::class);
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(500),
+        ]);
+        $folder = new Folder();
+        $folder->setPath('/homes/foo');
+        $this->repo->storeResource($folder);
+    }
+
+    /**
+     * @covers ::deleteResource
+     */
+    public function testDeleteResource()
+    {
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(200),
+        ]);
+        $file = new File();
+        $file->setPath('/homes/foo');
+        $this->repo->deleteResource($file);
+        $request = $this->getLastRequest();
+        $this->assertEquals('DELETE', $request->getMethod());
+        $this->assertEquals('file=%2Fhomes%2Ffoo', $request->getUri()->getQuery());
+    }
+
+    /**
+     * @covers ::deleteResource
+     */
+    public function testDeleteResource500ThrowsException()
+    {
+        $this->expectException(SaikuException::class);
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(500),
+        ]);
+        $file = new File();
+        $file->setPath('/homes/foo');
+        $this->repo->deleteResource($file);
+    }
+
+    /**
+     * @covers ::getAcl
+     */
+    public function testGetNoAclReturnsEmptyAcl()
+    {
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(200, [], '{"owner":null,"type":null,"roles":null,"users":null}'),
+        ]);
+        $actual   = $this->repo->getAcl('/homes/foo');
+        $expected = new Acl();
+        $this->assertEquals($expected, $actual);
     }
 }

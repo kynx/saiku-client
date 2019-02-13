@@ -119,9 +119,9 @@ final class RepositoryResource extends AbstractResource
     }
 
     /**
-     * Returns ACL for node at `$path`, or `null` if none set
+     * Returns ACL for node at `$path`
      */
-    public function getAcl(string $path) : ?Acl
+    public function getAcl(string $path) : Acl
     {
         $query = ['file' => $path];
         try {
@@ -135,11 +135,7 @@ final class RepositoryResource extends AbstractResource
         }
 
         if ($response->getStatusCode() === 200) {
-            $item = $this->decodeResponse($response);
-            if (isset($item['type'])) {
-                return new Acl($item);
-            }
-            return null;
+            return new Acl((string) $response->getBody());
         }
         throw new BadResponseException(sprintf("Couldn't get ACL at path '%s'", $path), $response);
     }

@@ -169,6 +169,14 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
         $this->assertInstanceOf(Acl::class, $actual);
     }
 
+    public function testGetNoAclReturnsEmptyAcl()
+    {
+        $acl = new Acl();
+        $this->repo->setAcl(self::REPORT_PATH, $acl);
+        $actual = $this->repo->getAcl(self::REPORT_PATH);
+        $this->assertEquals($acl, $actual);
+    }
+
     public function testGetNonExistentAclThrowsSaikuException()
     {
         $this->expectException(SaikuException::class);
