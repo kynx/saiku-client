@@ -22,6 +22,7 @@ use function explode;
 use function json_encode;
 use function parse_str;
 use function parse_url;
+use function urlencode;
 
 use const PHP_URL_QUERY;
 
@@ -81,7 +82,7 @@ final class RepositoryResourceTest extends AbstractTest
     /**
      * @covers ::get
      */
-    public function testGetRequestsContent()
+    public function testGetPopulatesContent()
     {
         $file1 = new File('{"fileType":"' . File::FILETYPE_REPORT . '","path":"/foo.saiku"}');
         $this->mockResponses([
@@ -91,6 +92,46 @@ final class RepositoryResourceTest extends AbstractTest
         ]);
         $actual = $this->repo->get(null, true);
         $this->assertEquals('foo', $actual->getRepoObjects()[0]->getContent());
+    }
+
+    /**
+     * @covers ::populateFolderContents
+     */
+    public function testGetRecursesContent()
+    {
+        $file = new File();
+        $file->setFileType(File::FILETYPE_REPORT);
+        $file->setPath('/foo/bar.saiku');
+        $folder = new Folder();
+        $folder->setPath('/foo');
+        $folder->setRepoObjects([$file]);
+
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(200, [], json_encode([$folder->toArray()])),
+            new Response(200, [], 'foo'),
+        ]);
+        $actual = $this->repo->get('/foo', true);
+        $this->assertInstanceOf(Folder::class, $actual);
+        /** @var Folder $actual */
+        $this->assertCount(1, $actual->getRepoObjects());
+        $this->assertEquals('foo', $actual->getRepoObjects()[0]->getContent());
+    }
+
+    /**
+     * @covers ::populateFolderContents
+     */
+    public function testGetIgnoresNonContentType()
+    {
+        $file1 = new File('{"fileType":"' . File::FILETYPE_DATASOURCE . '","path":"/foo.sds"}');
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(200, [], json_encode([$file1->toArray()])),
+        ]);
+        $actual = $this->repo->get('/foo.sds', true);
+        $this->assertInstanceOf(File::class, $actual);
+        /** @var File $actual */
+        $this->assertNull($actual->getContent());
     }
 
     /**
@@ -290,6 +331,21 @@ final class RepositoryResourceTest extends AbstractTest
     /**
      * @covers ::getAcl
      */
+    public function testGetAcl()
+    {
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(200, [], '{"owner":"","type":"SECURED","roles":{"ROLE_USER":["READ"]},"users":[]}'),
+        ]);
+        $actual = $this->repo->getAcl('/homes/foo');
+        $this->assertInstanceOf(Acl::class, $actual);
+        $request = $this->getLastRequest();
+        $this->assertEquals('file=%2Fhomes%2Ffoo', $request->getUri()->getQuery());
+    }
+
+    /**
+     * @covers ::getAcl
+     */
     public function testGetNoAclReturnsEmptyAcl()
     {
         $this->mockResponses([
@@ -299,5 +355,63 @@ final class RepositoryResourceTest extends AbstractTest
         $actual   = $this->repo->getAcl('/homes/foo');
         $expected = new Acl();
         $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @covers ::getAcl
+     */
+    public function testGetAcl500ThrowsException()
+    {
+        $this->expectException(SaikuException::class);
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(500),
+        ]);
+        $this->repo->getAcl('/homes/foo');
+    }
+
+    /**
+     * @covers ::getAcl
+     */
+    public function testGetAcl201ThrowsException()
+    {
+        $this->expectException(BadResponseException::class);
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(201),
+        ]);
+        $this->repo->getAcl('/homes/foo');
+    }
+
+    /**
+     * @covers ::setAcl
+     */
+    public function testSetAcl()
+    {
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(200),
+        ]);
+        $acl = new Acl();
+        $acl->setType(Acl::TYPE_SECURED)
+            ->addRole('ROLE_USER', [Acl::METHOD_READ]);
+        $this->repo->setAcl('/homes/foo', $acl);
+        $encoded = urlencode(json_encode($acl->toArray()));
+        $request = $this->getLastRequest();
+        $this->assertEquals('POST', $request->getMethod());
+        $this->assertEquals('file=%2Fhomes%2Ffoo&acl=' . $encoded, (string) $request->getBody());
+    }
+
+    /**
+     * @covers ::setAcl
+     */
+    public function testSetAcl500ThrowsException()
+    {
+        $this->expectException(SaikuException::class);
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(500),
+        ]);
+        $this->repo->setAcl('/homes/foo', new Acl());
     }
 }

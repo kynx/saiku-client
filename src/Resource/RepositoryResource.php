@@ -20,7 +20,6 @@ use Kynx\Saiku\Client\Exception\SaikuException;
 
 use function count;
 use function implode;
-use function in_array;
 use function json_encode;
 use function sprintf;
 
@@ -156,14 +155,13 @@ final class RepositoryResource extends AbstractResource
         }
     }
 
-    private function populateFolderContents(Folder $folder) : void
+    private function populateFolderContents(AbstractNode $node) : void
     {
-        $contentType = [File::FILETYPE_LICENSE, File::FILETYPE_REPORT];
-        foreach ($folder->getRepoObjects() as $object) {
-            if ($object instanceof Folder) {
+        if ($node instanceof File && $node->hasContent()) {
+            $node->setContent($this->getResource($node->getPath()));
+        } elseif ($node instanceof Folder) {
+            foreach ($node->getRepoObjects() as $object) {
                 $this->populateFolderContents($object);
-            } elseif ($object instanceof File && in_array($object->getFileType(), $contentType)) {
-                $object->setContent($this->getResource($object->getPath()));
             }
         }
     }

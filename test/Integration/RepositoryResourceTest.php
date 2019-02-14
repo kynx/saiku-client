@@ -83,8 +83,16 @@ final class RepositoryResourceTest extends AbstractIntegrationTest
 
     public function testGetReturnsFile()
     {
-        $file = $this->repo->get(self::REPORT_PATH);
-        $this->assertInstanceOf(File::class, $file);
+        $actual = $this->repo->get(self::REPORT_PATH);
+        $this->assertInstanceOf(File::class, $actual);
+    }
+
+    public function testGetReturnsFileAndContent()
+    {
+        $actual = $this->repo->get(self::REPORT_PATH, true);
+        $this->assertInstanceOf(File::class, $actual);
+        /** @var File $actual */
+        $this->assertNotEmpty($actual->getContent());
     }
 
     public function testGetResourceReturnsContent()

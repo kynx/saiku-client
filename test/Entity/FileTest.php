@@ -36,6 +36,26 @@ class FileTest extends TestCase
     }
 
     /**
+     * @covers ::hasContent
+     * @dataProvider contentProvider
+     */
+    public function testHasContent($type, $hasContent)
+    {
+        $this->file->setFileType($type);
+        $this->assertEquals($hasContent, $this->file->hasContent());
+    }
+
+    public function contentProvider()
+    {
+        return [
+            [File::FILETYPE_DATASOURCE, false],
+            [File::FILETYPE_REPORT, true],
+            [File::FILETYPE_SCHEMA, true],
+            [File::FILETYPE_LICENSE, true],
+        ];
+    }
+
+    /**
      * @covers ::getAllFiletypes
      */
     public function testGetAllFiletypes()

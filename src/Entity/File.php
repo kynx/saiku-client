@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Kynx\Saiku\Client\Entity;
 
+use function in_array;
+
 final class File extends AbstractNode
 {
     public const FILETYPE_DATASOURCE = 'sds';
@@ -42,6 +44,17 @@ final class File extends AbstractNode
         return $this;
     }
 
+    /**
+     * Return true if this type of file can have content
+     */
+    public function hasContent() : bool
+    {
+        return in_array($this->fileType, [self::FILETYPE_LICENSE, self::FILETYPE_REPORT, self::FILETYPE_SCHEMA]);
+    }
+
+    /**
+     * Returns array of all known `fileType`s
+     */
     public static function getAllFiletypes() : array
     {
         return [
