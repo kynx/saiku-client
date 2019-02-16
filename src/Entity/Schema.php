@@ -20,7 +20,7 @@ final class Schema extends AbstractEntity
     /** @var string */
     protected $xml;
 
-    public function getName() : string
+    public function getName() : ?string
     {
         return $this->name;
     }
@@ -31,7 +31,7 @@ final class Schema extends AbstractEntity
         return $this;
     }
 
-    public function getPath() : string
+    public function getPath() : ?string
     {
         return $this->path;
     }

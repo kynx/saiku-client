@@ -74,4 +74,22 @@ class UserTest extends TestCase
         $this->user->setRoles(['ROLE_USER']);
         $this->assertEquals(['ROLE_USER'], $this->user->getRoles());
     }
+
+    /**
+     * @covers ::hasRole
+     */
+    public function testHasRole()
+    {
+        $this->user->setRoles(['ROLE_USER']);
+        $this->assertTrue($this->user->hasRole('ROLE_USER'));
+    }
+
+    /**
+     * @covers ::hasRole
+     */
+    public function testHasRoleReturnsFalse()
+    {
+        $this->user->setRoles(['ROLE_USER']);
+        $this->assertFalse($this->user->hasRole('ROLE_ADMIN'));
+    }
 }

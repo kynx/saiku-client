@@ -47,23 +47,43 @@ class AclTest extends TestCase
     }
 
     /**
-     * @covers ::setOwner
      * @covers ::getOwner
+     */
+    public function testGetOwner()
+    {
+        $acl    = new Acl('{"owner":"slarty"}');
+        $actual = $acl->getOwner();
+        $this->assertEquals('slarty', $actual);
+    }
+
+    /**
+     * @covers ::setOwner
      */
     public function testSetOwner()
     {
         $this->acl->setOwner('slarty');
-        $this->assertEquals('slarty', $this->acl->getOwner());
+        $actual = $this->acl->getOwner();
+        $this->assertEquals('slarty', $actual);
+    }
+
+    /**
+     * @covers ::getType
+     */
+    public function testGetType()
+    {
+        $acl    = new Acl('{"type":"PRIVATE"}');
+        $actual = $acl->getType();
+        $this->assertEquals('PRIVATE', $actual);
     }
 
     /**
      * @covers ::setType
-     * @covers ::getType
      */
     public function testSetType()
     {
         $this->acl->setType(Acl::TYPE_PRIVATE);
-        $this->assertEquals(Acl::TYPE_PRIVATE, $this->acl->getType());
+        $actual = $this->acl->getType();
+        $this->assertEquals(Acl::TYPE_PRIVATE, $actual);
     }
 
     /**
@@ -76,13 +96,23 @@ class AclTest extends TestCase
     }
 
     /**
-     * @covers ::addRole
      * @covers ::getRoles
      */
-    public function tesAddRole()
+    public function testGetRoles()
+    {
+        $acl    = new Acl('{"roles":{"ROLE_ADMIN":["NONE"]}}');
+        $actual = $acl->getRoles();
+        $this->assertEquals(['ROLE_ADMIN' => ['NONE']], $actual);
+    }
+
+    /**
+     * @covers ::addRole
+     */
+    public function testAddRole()
     {
         $this->acl->addRole('ROLE_ADMIN', [Acl::METHOD_NONE]);
-        $this->assertEquals(['ROLE_ADMIN' => [Acl::METHOD_NONE]], $this->acl->getRoles());
+        $actual = $this->acl->getRoles();
+        $this->assertEquals(['ROLE_ADMIN' => [Acl::METHOD_NONE]], $actual);
     }
 
     /**
@@ -95,13 +125,24 @@ class AclTest extends TestCase
     }
 
     /**
-     * @covers ::addUser
      * @covers ::getUsers
      */
-    public function testAddtUser()
+    public function testGetUsers()
+    {
+        $acl    = new Acl('{"users":{"slarty":["NONE"]}}');
+        $actual = $acl->getUsers();
+        $this->assertEquals(['slarty' => ['NONE']], $actual);
+    }
+
+    /**
+     * @covers ::addUser
+     * @covers ::validateMethods
+     */
+    public function testAddUser()
     {
         $this->acl->addUser('slarty', [Acl::METHOD_NONE]);
-        $this->assertEquals(['slarty' => [Acl::METHOD_NONE]], $this->acl->getUsers());
+        $actual = $this->acl->getUsers();
+        $this->assertEquals(['slarty' => [Acl::METHOD_NONE]], $actual);
     }
 
     /**

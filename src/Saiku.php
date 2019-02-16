@@ -116,7 +116,7 @@ final class Saiku
         }
 
         $options = [
-            'query'   => $request->getQueryParams(),
+            'query'   => $request->getUri()->getQuery(),
             'headers' => $this->getProxyHeaders($request),
         ];
         if (in_array($method, ['PATCH', 'POST', 'PUT'])) {

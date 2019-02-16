@@ -121,6 +121,7 @@ final class DatasourceResourceTest extends AbstractTest
 
     /**
      * @covers ::create
+     * @covers ::validate
      */
     public function testCreate()
     {

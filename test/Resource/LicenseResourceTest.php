@@ -118,6 +118,9 @@ final class LicenseResourceTest extends AbstractTest
         $this->license->set($this->getStream('foo'));
     }
 
+    /**
+     * @covers ::set
+     */
     public function testSet401ThrowsBadLoginException()
     {
         $this->expectException(BadLoginException::class);
@@ -125,6 +128,21 @@ final class LicenseResourceTest extends AbstractTest
             new Response(401),
         ]);
         $this->license->set($this->getStream('foo'));
+    }
+
+    /**
+     * @covers ::__construct
+     */
+    public function testGetEmpty()
+    {
+        // dumb - just for coverage
+        $license = new LicenseResource($this->session, $this->client);
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response(200, [], '{}'),
+        ]);
+        $actual = $license->get();
+        $this->assertInstanceOf(License::class, $actual);
     }
 
     private function getStream(string $contents) : Stream

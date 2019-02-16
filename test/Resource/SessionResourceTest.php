@@ -10,12 +10,16 @@ declare(strict_types=1);
 namespace KynxTest\Saiku\Client\Resource;
 
 use GuzzleHttp\Cookie\SetCookie;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Response;
 use Kynx\Saiku\Client\Exception\BadLoginException;
+use Kynx\Saiku\Client\Exception\LicenseException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\SessionResource;
 use Kynx\Saiku\Client\Resource\UserResource;
 use KynxTest\Saiku\Client\AbstractTest;
+
+use function count;
 
 /**
  * @coversDefaultClass \Kynx\Saiku\Client\Resource\SessionResource
@@ -30,6 +34,53 @@ class SessionResourceTest extends AbstractTest
         parent::setUp();
 
         $this->session = $this->getSessionResource();
+    }
+
+    /**
+     * @covers ::__construct
+     */
+    public function testConstruct()
+    {
+        $session = new SessionResource($this->client);
+        $session->setUsername('foo');
+        $session->setPassword('bar');
+        $this->mockResponses([$this->getLoginSuccessResponse()]);
+        $session->get();
+        $request = $this->getLastRequest();
+        $this->assertEquals('POST', $request->getMethod());
+        $this->assertEquals('username=foo&password=bar', (string) $request->getBody());
+    }
+
+    /**
+     * @covers ::setUsername
+     * @covers ::getUsername
+     */
+    public function testSetUsername()
+    {
+        $this->session->setUsername('foo');
+        $actual = $this->session->getUsername();
+        $this->assertEquals('foo', $actual);
+    }
+
+    /**
+     * @covers ::getCookieJar
+     */
+    public function testSetUsernameClearsCookieJar()
+    {
+        $this->cookieJar->setCookie($this->getSessionCookie());
+        $this->session->setUsername('foo');
+        $this->assertEquals(0, count($this->cookieJar));
+    }
+
+    /**
+     * @covers ::setPassword
+     * @covers ::getPassword
+     */
+    public function testSetPassword()
+    {
+        $this->session->setPassword('foo');
+        $actual = $this->session->getPassword();
+        $this->assertEquals('foo', $actual);
     }
 
     /**
@@ -102,11 +153,25 @@ class SessionResourceTest extends AbstractTest
     /**
      * @covers ::get
      */
-    public function testLogin204ThrowsSaikuException()
+    public function testGetThrowsLicenseException()
     {
-        $this->expectException(SaikuException::class);
-        $this->mockResponses([new Response(405)]);
+        $this->expectException(LicenseException::class);
+        $this->mockResponses([new Response(500, [], 'Error fetching license')]);
         $this->session->get();
+    }
+
+    /**
+     * @covers ::request
+     */
+    public function testRequestLogsIn()
+    {
+        $this->mockResponses([
+            $this->getLoginSuccessResponse(),
+            new Response('200', [], 'foo'),
+        ]);
+        $response = $this->session->request('GET', '/foo');
+        $this->assertCount(2, $this->history);
+        $this->assertEquals('foo', (string) $response->getBody());
     }
 
     /**
@@ -122,6 +187,17 @@ class SessionResourceTest extends AbstractTest
             new Response(401),
         ]);
         $this->session->request('GET', UserResource::PATH);
+    }
+
+    /**
+     * @covers ::request
+     */
+    public function testRequestRethrowsException()
+    {
+        $this->expectException(ClientException::class);
+        $this->cookieJar->setCookie($this->getSessionCookie());
+        $this->mockResponses([new Response('404')]);
+        $this->session->request('GET', '/foo');
     }
 
     /**

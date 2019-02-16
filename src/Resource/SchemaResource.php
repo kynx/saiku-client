@@ -43,9 +43,9 @@ final class SchemaResource extends AbstractResource
             return array_map(function (array $item) {
                 return new Schema($item);
             }, $this->decodeResponse($response));
-        } else {
-            throw new BadResponseException("Couldn't get datasources", $response);
         }
+
+        throw new BadResponseException("Couldn't get datasources", $response);
     }
 
     /**

@@ -40,9 +40,9 @@ final class UserResource extends AbstractResource
             return array_map(function (array $properties) {
                 return new User($properties);
             }, $this->decodeResponse($response));
-        } else {
-            throw new BadResponseException(sprintf('Error getting users'), $response);
         }
+
+        throw new BadResponseException(sprintf('Error getting users'), $response);
     }
 
     /**
@@ -67,9 +67,9 @@ final class UserResource extends AbstractResource
 
         if ($response->getStatusCode() === 200) {
             return new User((string) $response->getBody());
-        } else {
-            throw new BadResponseException(sprintf("Error getting user id '%s':", $id), $response);
         }
+
+        throw new BadResponseException(sprintf("Error getting user id '%s':", $id), $response);
     }
 
     /**
