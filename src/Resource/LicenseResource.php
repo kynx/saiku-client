@@ -45,6 +45,7 @@ final class LicenseResource
     {
         $options = [
             'auth' => [$this->session->getUsername(), $this->session->getPassword()],
+            'cookies' => false,
             'body' => $stream,
         ];
         try {

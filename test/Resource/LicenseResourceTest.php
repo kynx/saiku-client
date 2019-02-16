@@ -109,6 +109,19 @@ final class LicenseResourceTest extends AbstractTest
     /**
      * @covers ::set
      */
+    public function testSetIgnoresCookies()
+    {
+        $cookie = $this->getSessionCookie();
+        $this->mockResponses([
+            new Response(200, ['Set-Cookie' => (string) $cookie]),
+        ]);
+        $this->license->set($this->getStream('foo'));
+        $this->assertCount(0, $this->cookieJar);
+    }
+
+    /**
+     * @covers ::set
+     */
     public function testSet500ThrowsException()
     {
         $this->expectException(SaikuException::class);
