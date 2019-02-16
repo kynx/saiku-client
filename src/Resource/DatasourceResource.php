@@ -17,12 +17,12 @@ use Kynx\Saiku\Client\Exception\SaikuException;
 
 use function array_map;
 
-final class DatasourceResource extends AbstractResource
+final class DatasourceResource extends AbstractResource implements DatasourceResourceInterface
 {
     public const PATH = 'rest/saiku/admin/datasources/';
 
     /**
-     * @return Datasource[]
+     * {@inheritdoc}
      */
     public function getAll() : array
     {
@@ -41,6 +41,9 @@ final class DatasourceResource extends AbstractResource
         throw new BadResponseException("Couldn't get datasources", $response);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function create(Datasource $datasource) : Datasource
     {
         $this->validate($datasource);
@@ -62,6 +65,9 @@ final class DatasourceResource extends AbstractResource
         throw new BadResponseException("Couldn't create / update datasource", $response);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function update(Datasource $datasource) : Datasource
     {
         $this->validate($datasource);
@@ -87,6 +93,9 @@ final class DatasourceResource extends AbstractResource
         throw new BadResponseException("Couldn't create / update datasource", $response);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function delete(Datasource $datasource) : void
     {
         if (! $datasource->getId()) {

@@ -14,11 +14,16 @@ use GuzzleHttp\Cookie\CookieJarInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Kynx\Saiku\Client\Resource\DatasourceResource;
+use Kynx\Saiku\Client\Resource\DatasourceResourceInterface;
 use Kynx\Saiku\Client\Resource\LicenseResource;
+use Kynx\Saiku\Client\Resource\LicenseResourceInterface;
 use Kynx\Saiku\Client\Resource\RepositoryResource;
+use Kynx\Saiku\Client\Resource\RepositoryResourceInterface;
 use Kynx\Saiku\Client\Resource\SchemaResource;
+use Kynx\Saiku\Client\Resource\SchemaResourceInterface;
 use Kynx\Saiku\Client\Resource\SessionResource;
 use Kynx\Saiku\Client\Resource\UserResource;
+use Kynx\Saiku\Client\Resource\UserResourceInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -34,7 +39,7 @@ use function substr;
  *
  * @see https://community.meteorite.bi/docs/
  */
-final class Saiku
+final class Saiku implements SaikuInterface
 {
     private $client;
     private $datasource;
@@ -60,7 +65,7 @@ final class Saiku
     /**
      * Returns new instance with given cookie jar injected
      */
-    public function withCookieJar(CookieJarInterface $cookieJar) : Saiku
+    public function withCookieJar(CookieJarInterface $cookieJar) : SaikuInterface
     {
         $options            = $this->client->getConfig();
         $options['cookies'] = $cookieJar;
@@ -71,7 +76,7 @@ final class Saiku
     /**
      * Sets Saiku username to use for connection
      */
-    public function setUsername(string $username) : Saiku
+    public function setUsername(string $username) : SaikuInterface
     {
         $this->session->setUsername($username);
         return $this;
@@ -80,7 +85,7 @@ final class Saiku
     /**
      * Sets Saiku password to use for connection
      */
-    public function setPassword(string $password) : Saiku
+    public function setPassword(string $password) : SaikuInterface
     {
         $this->session->setPassword($password);
         return $this;
@@ -133,7 +138,7 @@ final class Saiku
     /**
      * Returns datasource resource
      */
-    public function datasource() : DatasourceResource
+    public function datasource() : DatasourceResourceInterface
     {
         if (! $this->datasource) {
             $this->datasource = new DatasourceResource($this->session);
@@ -144,7 +149,7 @@ final class Saiku
     /**
      * Returns license resource
      */
-    public function license() : LicenseResource
+    public function license() : LicenseResourceInterface
     {
         if (! $this->license) {
             $this->license = new LicenseResource($this->session, $this->client);
@@ -155,7 +160,7 @@ final class Saiku
     /**
      * Returns repository resource
      */
-    public function repository() : RepositoryResource
+    public function repository() : RepositoryResourceInterface
     {
         if (! $this->repository) {
             $this->repository = new RepositoryResource($this->session);
@@ -166,7 +171,7 @@ final class Saiku
     /**
      * Returns schema resource
      */
-    public function schema() : SchemaResource
+    public function schema() : SchemaResourceInterface
     {
         if (! $this->schema) {
             $this->schema = new SchemaResource($this->session);
@@ -177,7 +182,7 @@ final class Saiku
     /**
      * Returns user resource
      */
-    public function user() : UserResource
+    public function user() : UserResourceInterface
     {
         if (! $this->user) {
             $this->user = new UserResource($this->session);
@@ -185,7 +190,7 @@ final class Saiku
         return $this->user;
     }
 
-    private function getProxyHeaders(ServerRequestInterface $request)
+    private function getProxyHeaders(ServerRequestInterface $request) : array
     {
         $headers = $request->getHeaders();
         unset($headers['Cookie']);

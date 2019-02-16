@@ -19,14 +19,12 @@ use Kynx\Saiku\Client\Exception\SaikuException;
 use function array_map;
 use function sprintf;
 
-final class UserResource extends AbstractResource
+final class UserResource extends AbstractResource implements UserResourceInterface
 {
     public const PATH = 'rest/saiku/admin/users/';
 
     /**
-     * Returns array of users
-     *
-     * @return User[]
+     * {@inheritdoc}
      */
     public function getAll() : array
     {
@@ -46,8 +44,7 @@ final class UserResource extends AbstractResource
     }
 
     /**
-     * Returns user with given id, if they exist
-     *
+     * {@inheritdoc}
      * @throws SaikuException
      */
     public function get(int $id) : ?User
@@ -73,8 +70,7 @@ final class UserResource extends AbstractResource
     }
 
     /**
-     * Creates and returns new user
-     *
+     * {@inheritdoc}
      * @throws SaikuException
      */
     public function create(User $user) : User
@@ -91,7 +87,7 @@ final class UserResource extends AbstractResource
     }
 
     /**
-     * Updates user without updating password, returning updated user
+     * {@inheritdoc}
      */
     public function update(User $user) : User
     {
@@ -102,8 +98,7 @@ final class UserResource extends AbstractResource
     }
 
     /**
-     * Updates both user and password, returning updated user
-     *
+     * {@inheritdoc}
      * @throws SaikuException
      */
     public function updatePassword(User $user) : User
@@ -128,7 +123,7 @@ final class UserResource extends AbstractResource
     }
 
     /**
-     * Deletes user
+     * {@inheritdoc}
      */
     public function delete(User $user) : void
     {
