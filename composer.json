@@ -49,8 +49,16 @@
     ],
     "cs-check": "phpcs",
     "cs-fix": "phpcbf",
+    "docker-pull-and-run": [
+      "docker pull kynx/saikuce",
+      "docker run --rm -d -p8080:8080 kynx/saikuce",
+      "sleep 10",
+      "curl -S -s -f http://localhost:8080 > /dev/null"
+    ],
+    "docker-kill-all": "docker kill $(docker ps -q)",
     "test": "phpunit --colors=always",
     "test-coverage": "phpunit --colors=always --coverage-clover clover.xml",
+    "test-integration": "phpunit --colors=always --group integration",
     "upload-coverage": "coveralls -v"
   }
 }

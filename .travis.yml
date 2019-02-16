@@ -2,6 +2,9 @@ sudo: false
 
 language: php
 
+services:
+  - docker
+
 cache:
   directories:
     - $HOME/.composer/cache
@@ -21,6 +24,7 @@ matrix:
         - DEPS=locked
         - CS_CHECK=true
         - TEST_COVERAGE=true
+        - INTEGRATION=$([ ! -z "$SAIKU_LICENSE" ] && echo true)
     - php: 7.1
       env:
         - DEPS=latest
@@ -42,16 +46,18 @@ matrix:
 
 before_install:
   - if [[ $TEST_COVERAGE != 'true' ]]; then phpenv config-rm xdebug.ini || return 0 ; fi
-
 install:
   - travis_retry composer install $COMPOSER_ARGS
   - if [[ $DEPS == 'latest' ]]; then travis_retry composer update $COMPOSER_ARGS ; fi
   - if [[ $DEPS == 'lowest' ]]; then travis_retry composer update --prefer-lowest --prefer-stable $COMPOSER_ARGS ; fi
   - if [[ $TEST_COVERAGE == 'true' ]]; then travis_retry composer require --dev $COMPOSER_ARGS $COVERAGE_DEPS ; fi
   - stty cols 120 && composer show
+  - if [[ $INTEGRATION == 'true' ]]; then composer docker-pull-and-run ; fi
+  - if [[ $INTEGRATION == 'true' ]]; then echo "$SAIKU_LICENSE" | base64 -d > license.lic ; fi
 
 script:
   - if [[ $TEST_COVERAGE == 'true' ]]; then composer test-coverage ; else composer test ; fi
+  - if [[ $INTEGRATION == 'true' ]]; then composer test-integration ; fi
   - if [[ $CS_CHECK == 'true' ]]; then composer cs-check ; fi
 
 after_script:
