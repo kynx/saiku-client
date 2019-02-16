@@ -15,11 +15,13 @@ use function array_diff;
 use function count;
 use function implode;
 use function in_array;
-use function is_array;
 use function sprintf;
 
 final class Acl extends AbstractEntity
 {
+    public const ROLE_ADMIN = 'ROLE_ADMIN';
+    public const ROLE_USER  = 'ROLE_USER';
+
     public const TYPE_PUBLIC  = 'PUBLIC';
     public const TYPE_PRIVATE = 'PRIVATE';
     public const TYPE_SECURED = 'SECURED';
@@ -94,9 +96,6 @@ final class Acl extends AbstractEntity
     {
         $this->validateMethods($methods);
 
-        if (! is_array($this->users)) {
-            $this->users = [];
-        }
         $this->users[$user] = $methods;
         return $this;
     }

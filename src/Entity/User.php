@@ -13,9 +13,6 @@ use function in_array;
 
 final class User extends AbstractEntity
 {
-    public const ROLE_ADMIN = 'ROLE_ADMIN';
-    public const ROLE_USER  = 'ROLE_USER';
-
     /** @var int */
     protected $id;
     /** @var string */
