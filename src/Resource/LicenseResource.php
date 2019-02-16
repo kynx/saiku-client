@@ -44,9 +44,9 @@ final class LicenseResource
     public function set(StreamInterface $stream) : void
     {
         $options = [
-            'auth' => [$this->session->getUsername(), $this->session->getPassword()],
+            'auth'    => [$this->session->getUsername(), $this->session->getPassword()],
             'cookies' => false,
-            'body' => $stream,
+            'body'    => $stream,
         ];
         try {
             $this->client->request('POST', self::PATH, $options);
