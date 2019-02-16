@@ -131,6 +131,7 @@ abstract class AbstractIntegrationTest extends TestCase
         $restore = new SaikuRestore($saiku);
         try {
             $restore->restore($backup);
+            $this->cookieJar->clear();
         } catch (SaikuExceptionInterface $e) {
             $this->markTestSkipped(sprintf('Error restoring repository: %s', $e->getMessage()));
         }

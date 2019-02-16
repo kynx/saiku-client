@@ -28,6 +28,8 @@ final class SaikuTest extends AbstractIntegrationTest
     {
         parent::setUp();
         $this->saiku = new Saiku($this->client);
+        $this->saiku->setUsername($this->session->getUsername())
+            ->setPassword($this->session->getPassword());
     }
 
     public function testProxyReturnsResponse()

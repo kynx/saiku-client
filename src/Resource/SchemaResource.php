@@ -19,17 +19,12 @@ use function array_map;
 use function basename;
 use function sprintf;
 
-final class SchemaResource extends AbstractResource
+final class SchemaResource extends AbstractResource implements SchemaResourceInterface
 {
     public const PATH = 'rest/saiku/admin/schema/';
 
     /**
-     * Returns all schemas
-     *
-     * The schemas returned do not have the XML populated: use `RespositoryResource::getResource($schema->getPath())`
-     * if you need it.
-     *
-     * @return Schema[]
+     * {@inheritdoc}
      */
     public function getAll() : array
     {
@@ -49,9 +44,7 @@ final class SchemaResource extends AbstractResource
     }
 
     /**
-     * Creates a schema, return new
-     *
-     * The returned schema does not have its XML populated.
+     * {@inheritdoc}
      */
     public function create(Schema $schema) : Schema
     {
@@ -88,9 +81,7 @@ final class SchemaResource extends AbstractResource
     }
 
     /**
-     * Updates an existing schema, returning updated schema
-     *
-     * If the schema does not exist, it is created. The returned schema does not have its XML populated.
+     * {@inheritdoc}
      */
     public function update(Schema $schema) : Schema
     {
@@ -124,7 +115,7 @@ final class SchemaResource extends AbstractResource
     }
 
     /**
-     * Deletes a schema, if it exists
+     * {@inheritdoc}
      */
     public function delete(Schema $schema) : void
     {

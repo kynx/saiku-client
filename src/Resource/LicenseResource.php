@@ -15,7 +15,7 @@ use Kynx\Saiku\Client\Entity\License;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Psr\Http\Message\StreamInterface;
 
-final class LicenseResource
+final class LicenseResource implements LicenseResourceInterface
 {
     use ExceptionTrait;
 
@@ -30,6 +30,9 @@ final class LicenseResource
         $this->client  = $client;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function get() : License
     {
         try {
@@ -41,6 +44,9 @@ final class LicenseResource
         return new License((string) $response->getBody());
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function set(StreamInterface $stream) : void
     {
         $options = [

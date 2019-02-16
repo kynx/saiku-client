@@ -18,7 +18,7 @@ use Kynx\Saiku\Client\Exception\LicenseException;
 use Kynx\Saiku\Client\Exception\SaikuException;
 use Psr\Http\Message\ResponseInterface;
 
-final class SessionResource
+final class SessionResource implements SessionResourceInterface
 {
     use ExceptionTrait;
 
@@ -33,30 +33,41 @@ final class SessionResource
         $this->client = $client;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getUsername() : ?string
     {
         return $this->username;
     }
 
-    public function setUsername(string $username)
+    /**
+     * {@inheritdoc}
+     */
+    public function setUsername(string $username) : void
     {
         $this->getCookieJar()->clear();
         $this->username = $username;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getPassword() : ?string
     {
         return $this->password;
     }
 
-    public function setPassword(string $password)
+    /**
+     * {@inheritdoc}
+     */
+    public function setPassword(string $password) : void
     {
         $this->password = $password;
     }
 
     /**
-     * Logs in to saiku server
-     *
+     * {@inheritdoc}
      * @throws BadLoginException
      * @throws LicenseException
      * @throws SaikuException
@@ -86,8 +97,7 @@ final class SessionResource
     }
 
     /**
-     * Logs out from saiku server
-     *
+     * {@inheritdoc}
      * @throws SaikuException
      */
     public function clear() : void
@@ -102,10 +112,7 @@ final class SessionResource
     }
 
     /**
-     * Returns response from saiku server
-     *
-     * If no session is active, logs in. If request fails with unauthorised error, logs in and retries request.
-     *
+     * {@inheritdoc}
      * @throws GuzzleException
      */
     public function request(string $method, string $url, array $options = [], int $count = 0) : ResponseInterface

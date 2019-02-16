@@ -23,15 +23,14 @@ use function implode;
 use function json_encode;
 use function sprintf;
 
-final class RepositoryResource extends AbstractResource
+final class RepositoryResource extends AbstractResource implements RepositoryResourceInterface
 {
     public const PATH          = 'rest/saiku/api/repository/';
     public const PATH_ACL      = 'rest/saiku/api/repository/resource/acl/';
     public const PATH_RESOURCE = 'rest/saiku/api/repository/resource/';
 
     /**
-     * Returns file or folder from repository
-     *
+     * {@inheritdoc}
      * @see https://github.com/OSBI/saiku/pull/690
      */
     public function get(?string $path = null, bool $contents = false, ?array $types = null) : AbstractNode
@@ -69,6 +68,9 @@ final class RepositoryResource extends AbstractResource
         ), $response);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getResource(string $path) : string
     {
         try {
@@ -93,6 +95,9 @@ final class RepositoryResource extends AbstractResource
         ), $response);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function storeResource(AbstractNode $resource) : void
     {
         $params = ['file' => $resource->getPath()];
@@ -107,6 +112,9 @@ final class RepositoryResource extends AbstractResource
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function deleteResource(AbstractNode $resource) : void
     {
         $query = ['file' => $resource->getPath()];
@@ -118,7 +126,7 @@ final class RepositoryResource extends AbstractResource
     }
 
     /**
-     * Returns ACL for node at `$path`
+     * {@inheritdoc}
      */
     public function getAcl(string $path) : Acl
     {
@@ -139,6 +147,9 @@ final class RepositoryResource extends AbstractResource
         throw new BadResponseException(sprintf("Couldn't get ACL at path '%s'", $path), $response);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function setAcl(string $path, Acl $acl) : void
     {
         $params = [
@@ -155,6 +166,9 @@ final class RepositoryResource extends AbstractResource
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     private function populateFolderContents(AbstractNode $node) : void
     {
         if ($node instanceof File && $node->hasContent()) {
